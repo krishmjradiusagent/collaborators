@@ -150,7 +150,7 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
 
   return (
     <div className="w-full space-y-6 font-sans">
-      <div className="space-y-1">
+      <div className="pt-8 border-t border-[#EFEFEF] space-y-1">
         <h2 className="text-xl font-semibold text-[#111827]">Goals</h2>
         <p className="text-sm text-muted-foreground">Set monthly targets for your team</p>
       </div>
