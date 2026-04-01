@@ -271,7 +271,7 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                       ) : field === "appointments" && hasGoals ? (
                         <HoverCard openDelay={100}>
                           <HoverCardTrigger asChild>
-                            <span className="cursor-help font-semibold text-slate-900 border-b border-dotted border-slate-400 hover:border-slate-900 transition-colors">
+                            <span className="cursor-help font-bold text-slate-900 border-b-2 border-dotted border-blue-400/40 hover:border-blue-600 transition-colors">
                               {agent.goals?.[field as keyof typeof agent.goals]}
                             </span>
                           </HoverCardTrigger>
