@@ -322,8 +322,8 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                         </HoverCard>
                       ) : (
                         <div className={cn(
-                          "text-[14px] font-medium",
-                          hasGoals ? "text-gray-700" : "text-gray-300"
+                          "text-[14px]",
+                          hasGoals ? "font-semibold text-slate-900" : "font-medium text-gray-300"
                         )}>
                           {hasGoals ? agent.goals?.[field as keyof typeof agent.goals] : "—"}
                         </div>
