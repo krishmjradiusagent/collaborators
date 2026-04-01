@@ -23,13 +23,14 @@ import { Button } from "../../components/ui/Button"
 import { Input } from "../../components/ui/Input"
 import { Label } from "../../components/ui/Label"
 import { useGoals, METRICS, goalService } from "@mel-goals/shared"
+import { toast } from "sonner"
 import type { MetricKey } from "@mel-goals/shared"
 
 const schema = z.object({
-  newLeads: z.number().int().min(0).max(9999),
-  callsConversations: z.number().int().min(0).max(9999),
-  uniqueConversations: z.number().int().min(0).max(9999),
-  appointments: z.number().int().min(0).max(9999),
+  newLeads: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
+  callsConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
+  uniqueConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
+  appointments: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
 })
 
 type GoalsFormData = z.infer<typeof schema>
@@ -55,10 +56,10 @@ export function GoalSettingModal({
   const form = useForm<GoalsFormData>({
     resolver: zodResolver(schema),
     values: {
-      newLeads: goals?.metrics.newLeads || 0,
-      callsConversations: goals?.metrics.callsConversations || 0,
-      uniqueConversations: goals?.metrics.uniqueConversations || 0,
-      appointments: goals?.metrics.appointments || 0,
+      newLeads: (goals?.metrics.newLeads === 0 ? "" : goals?.metrics.newLeads) as any,
+      callsConversations: (goals?.metrics.callsConversations === 0 ? "" : goals?.metrics.callsConversations) as any,
+      uniqueConversations: (goals?.metrics.uniqueConversations === 0 ? "" : goals?.metrics.uniqueConversations) as any,
+      appointments: (goals?.metrics.appointments === 0 ? "" : goals?.metrics.appointments) as any,
     },
   })
 
@@ -74,8 +75,10 @@ export function GoalSettingModal({
   const onSubmit = async (data: GoalsFormData) => {
     try {
       await setGoals(data)
+      toast.success(`Goals saved for ${agentName}`)
       onOpenChange(false)
     } catch (error) {
+      toast.error(`Failed to save goals for ${agentName}`)
       console.error("Failed to save goals", error)
     }
   }

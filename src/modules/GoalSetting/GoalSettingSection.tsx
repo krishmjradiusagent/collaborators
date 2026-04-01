@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Target, TrendingUp, Phone, MessageCircle, Calendar, Plus } from "lucide-react"
+import { Target, TrendingUp, Phone, MessageCircle, Calendar } from "lucide-react"
 import { CollapsibleSection } from "../../components/CollapsibleSection"
 import { GoalSettingModal } from "./GoalSettingModal"
 import { useGoals, goalService } from "@mel-goals/shared"
@@ -75,11 +75,6 @@ export function GoalSettingSection() {
             </div>
           ))}
 
-          {/* Add Agent Placeholder */}
-          <button className="border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center p-8 gap-2 text-gray-300 hover:border-primary/20 hover:text-primary transition-all duration-300">
-             <Plus className="h-8 w-8" />
-             <span className="text-xs font-bold uppercase tracking-widest">Add Agent</span>
-          </button>
         </div>
       </div>
 
