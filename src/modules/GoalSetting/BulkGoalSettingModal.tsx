@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form"
+import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import {
@@ -21,6 +21,7 @@ import {
 import { Button } from "../../components/ui/Button"
 import { Input } from "../../components/ui/Input"
 import { Label } from "../../components/ui/Label"
+import { Checkbox } from "../../components/ui/Checkbox"
 import { useGoals, METRICS, goalService } from "@mel-goals/shared"
 import { toast } from "sonner"
 import type { MetricKey } from "@mel-goals/shared"
@@ -30,6 +31,7 @@ const schema = z.object({
   callsConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
   uniqueConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
   appointments: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  overrideExisting: z.boolean().default(false),
 })
 
 type GoalsFormData = z.infer<typeof schema>
@@ -55,13 +57,14 @@ export function BulkGoalSettingModal({
       callsConversations: undefined as any,
       uniqueConversations: undefined as any,
       appointments: undefined as any,
+      overrideExisting: false,
     },
   })
 
   const onSubmit = async (data: GoalsFormData) => {
     try {
       await setBulkGoals(data)
-      toast.success(`Goals updated for all ${agents.length} agents`)
+      toast.success(`Goals set for ${agents.length} agents`)
       onOpenChange(false)
       form.reset()
     } catch (error) {
@@ -126,6 +129,26 @@ export function BulkGoalSettingModal({
                 )}
               </div>
             ))}
+            
+            <div className="flex items-center space-x-2 pt-2 pb-2">
+              <Controller
+                name="overrideExisting"
+                control={form.control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="override"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
+              <label
+                htmlFor="override"
+                className="text-[13px] font-medium text-gray-500 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Override existing goals
+              </label>
+            </div>
           </div>
 
           <DialogFooter className="pt-8 flex gap-3">

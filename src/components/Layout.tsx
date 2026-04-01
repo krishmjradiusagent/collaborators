@@ -12,15 +12,17 @@ import { cn } from "../lib/utils"
 interface LayoutProps {
   children: React.ReactNode
   activeTab?: string
+  setActiveTab?: (tab: string) => void
 }
 
-export function Layout({ children, activeTab = "Team settings" }: LayoutProps) {
+export function Layout({ children, activeTab = "Team settings", setActiveTab }: LayoutProps) {
   const tabs = [
     "Accounts",
     "Integrations",
     "Billing",
     "Finances",
     "Team settings",
+    "Goals",
     "Notification settings",
   ]
 
@@ -120,6 +122,7 @@ export function Layout({ children, activeTab = "Team settings" }: LayoutProps) {
                 {tabs.map((tab) => (
                   <button
                     key={tab}
+                    onClick={() => setActiveTab?.(tab)}
                     className={cn(
                       "px-4 py-2 h-[40px] text-[14px] font-semibold transition-all relative whitespace-nowrap flex items-center justify-center",
                       tab === activeTab
