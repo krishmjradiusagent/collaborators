@@ -27,10 +27,10 @@ import { toast } from "sonner"
 import type { MetricKey } from "@mel-goals/shared"
 
 const schema = z.object({
-  newLeads: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  callsConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  uniqueConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  appointments: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
+  newLeads: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  callsConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  uniqueConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  appointments: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
 })
 
 type GoalsFormData = z.infer<typeof schema>
@@ -55,11 +55,11 @@ export function GoalSettingModal({
 
   const form = useForm<GoalsFormData>({
     resolver: zodResolver(schema),
-    values: {
-      newLeads: (goals?.metrics.newLeads === 0 ? "" : goals?.metrics.newLeads) as any,
-      callsConversations: (goals?.metrics.callsConversations === 0 ? "" : goals?.metrics.callsConversations) as any,
-      uniqueConversations: (goals?.metrics.uniqueConversations === 0 ? "" : goals?.metrics.uniqueConversations) as any,
-      appointments: (goals?.metrics.appointments === 0 ? "" : goals?.metrics.appointments) as any,
+    defaultValues: {
+      newLeads: (goals?.metrics.newLeads === 0 ? undefined : goals?.metrics.newLeads) as any,
+      callsConversations: (goals?.metrics.callsConversations === 0 ? undefined : goals?.metrics.callsConversations) as any,
+      uniqueConversations: (goals?.metrics.uniqueConversations === 0 ? undefined : goals?.metrics.uniqueConversations) as any,
+      appointments: (goals?.metrics.appointments === 0 ? undefined : goals?.metrics.appointments) as any,
     },
   })
 

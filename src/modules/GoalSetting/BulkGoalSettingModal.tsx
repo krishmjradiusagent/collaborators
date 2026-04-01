@@ -26,10 +26,10 @@ import { toast } from "sonner"
 import type { MetricKey } from "@mel-goals/shared"
 
 const schema = z.object({
-  newLeads: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  callsConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  uniqueConversations: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
-  appointments: z.preprocess((val) => (val === "" ? 0 : Number(val)), z.number().int().min(0).max(9999)),
+  newLeads: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  callsConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  uniqueConversations: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
+  appointments: z.preprocess((val) => (val === "" ? undefined : Number(val)), z.number({ required_error: "Must be a number" }).int().min(1, "Must be at least 1")),
 })
 
 type GoalsFormData = z.infer<typeof schema>
@@ -51,10 +51,10 @@ export function BulkGoalSettingModal({
   const form = useForm<GoalsFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      newLeads: "" as any,
-      callsConversations: "" as any,
-      uniqueConversations: "" as any,
-      appointments: "" as any,
+      newLeads: undefined as any,
+      callsConversations: undefined as any,
+      uniqueConversations: undefined as any,
+      appointments: undefined as any,
     },
   })
 
