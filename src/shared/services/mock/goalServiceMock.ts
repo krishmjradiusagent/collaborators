@@ -78,18 +78,38 @@ export class GoalServiceMock implements GoalServiceInterface {
     return goal
   }
 
-  async getTeamAgents(teamLeadId: string): Promise<Agent[]> {
+  async getTeamAgents(_teamLeadId: string): Promise<Agent[]> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 200))
     // Return all mock agents (in real implementation, filter by teamLeadId)
     return MOCK_AGENTS
   }
 
-  async getGoalHistory(agentId: string, limit: number = 6): Promise<MonthlyGoal[]> {
+  async getGoalHistory(_agentId: string, _limit: number = 6): Promise<MonthlyGoal[]> {
     // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 400))
     // For MVP, return empty array (not used in initial UI)
     return []
+  }
+  
+  async setGoalsForTeam(teamLeadId: string, agentIds: string[], metrics: Record<string, number>): Promise<void> {
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, 800))
+    const month = DEFAULT_MONTH()
+    
+    for (const agentId of agentIds) {
+      const key = `${agentId}_${month}`
+      const goal: MonthlyGoal = {
+        id: `goal_${Date.now()}_${agentId}`,
+        agentId,
+        teamLeadId,
+        month,
+        metrics: metrics as Record<string, number>,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      goalStore.set(key, goal)
+    }
   }
 }
 

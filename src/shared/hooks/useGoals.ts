@@ -17,6 +17,7 @@ interface UseGoalsReturn {
   error: string | null
   setSelectedAgent: (agent: Agent) => void
   setGoals: (metrics: Record<MetricKey, number>) => Promise<void>
+  setBulkGoals: (metrics: Record<MetricKey, number>) => Promise<void>
   refresh: () => Promise<void>
 }
 
@@ -88,6 +89,24 @@ export function useGoals({ service, teamLeadId }: UseGoalsProps): UseGoalsReturn
     [selectedAgent, service]
   )
 
+  const setBulkGoals = useCallback(
+    async (metrics: Record<MetricKey, number>) => {
+      try {
+        setSaving(true)
+        setError(null)
+        const agentIds = agents.map(a => a.id)
+        await service.setGoalsForTeam(teamLeadId, agentIds, metrics)
+        // Refresh local current user goals if needed, or just let the caller know it's done
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to save bulk goals')
+        throw err
+      } finally {
+        setSaving(false)
+      }
+    },
+    [agents, service, teamLeadId]
+  )
+
   const refresh = useCallback(async () => {
     if (!selectedAgent) return
     try {
@@ -110,6 +129,7 @@ export function useGoals({ service, teamLeadId }: UseGoalsProps): UseGoalsReturn
     error,
     setSelectedAgent,
     setGoals,
+    setBulkGoals,
     refresh,
   }
 }

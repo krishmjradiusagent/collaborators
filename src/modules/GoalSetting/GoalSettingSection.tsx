@@ -2,6 +2,7 @@ import * as React from "react"
 import { Target, TrendingUp, Phone, MessageCircle, Calendar } from "lucide-react"
 import { CollapsibleSection } from "../../components/CollapsibleSection"
 import { GoalSettingModal } from "./GoalSettingModal"
+import { BulkGoalSettingModal } from "./BulkGoalSettingModal"
 import { useGoals, goalService } from "@mel-goals/shared"
 import type { Agent } from "@mel-goals/shared"
 
@@ -12,6 +13,7 @@ export function GoalSettingSection() {
   })
 
   const [modalOpen, setModalOpen] = React.useState(false)
+  const [bulkModalOpen, setBulkModalOpen] = React.useState(false)
   const [activeAgent, setActiveAgent] = React.useState<Agent | null>(null)
 
   const handleEditGoals = (agent: Agent) => {
@@ -21,7 +23,12 @@ export function GoalSettingSection() {
   }
 
   return (
-    <CollapsibleSection title="Goals" actionLabel="Set goals for all" defaultOpen={true}>
+    <CollapsibleSection 
+      title="Goals" 
+      actionLabel="Set goals for all" 
+      onActionClick={() => setBulkModalOpen(true)}
+      defaultOpen={true}
+    >
       <div className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {agents.map((agent) => (
@@ -86,6 +93,11 @@ export function GoalSettingSection() {
           onOpenChange={setModalOpen}
         />
       )}
+
+      <BulkGoalSettingModal 
+        open={bulkModalOpen}
+        onOpenChange={setBulkModalOpen}
+      />
     </CollapsibleSection>
   )
 }

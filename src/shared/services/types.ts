@@ -17,6 +17,11 @@ export interface GoalServiceInterface {
   getTeamAgents(teamLeadId: string): Promise<Agent[]>
 
   /**
+   * Set goals for multiple agents (the "Set goals for all" feature)
+   */
+  setGoalsForTeam(teamLeadId: string, agentIds: string[], metrics: Record<string, number>): Promise<void>
+
+  /**
    * Get current or historical goal for reference
    */
   getGoalHistory(agentId: string, limit?: number): Promise<MonthlyGoal[]>

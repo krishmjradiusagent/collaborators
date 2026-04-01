@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -8,7 +7,7 @@ import {
   MessageCircle,
   Calendar,
   Loader2,
-  Target,
+  Users,
 } from "lucide-react"
 
 import {
@@ -35,50 +34,38 @@ const schema = z.object({
 
 type GoalsFormData = z.infer<typeof schema>
 
-interface GoalSettingModalProps {
-  agentId: string
-  agentName: string
+interface BulkGoalSettingModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-export function GoalSettingModal({
-  agentId,
-  agentName,
+export function BulkGoalSettingModal({
   open,
   onOpenChange,
-}: GoalSettingModalProps) {
-  const { goals, loading, saving, setGoals, setSelectedAgent, agents } = useGoals({
+}: BulkGoalSettingModalProps) {
+  const { agents, saving, setBulkGoals } = useGoals({
     service: goalService,
     teamLeadId: "lead_001",
   })
 
   const form = useForm<GoalsFormData>({
     resolver: zodResolver(schema),
-    values: {
-      newLeads: (goals?.metrics.newLeads === 0 ? "" : goals?.metrics.newLeads) as any,
-      callsConversations: (goals?.metrics.callsConversations === 0 ? "" : goals?.metrics.callsConversations) as any,
-      uniqueConversations: (goals?.metrics.uniqueConversations === 0 ? "" : goals?.metrics.uniqueConversations) as any,
-      appointments: (goals?.metrics.appointments === 0 ? "" : goals?.metrics.appointments) as any,
+    defaultValues: {
+      newLeads: "" as any,
+      callsConversations: "" as any,
+      uniqueConversations: "" as any,
+      appointments: "" as any,
     },
   })
 
-  useEffect(() => {
-    if (open && agentId) {
-      const agent = agents.find((a) => a.id === agentId)
-      if (agent) {
-        setSelectedAgent(agent)
-      }
-    }
-  }, [open, agentId, agents, setSelectedAgent])
-
   const onSubmit = async (data: GoalsFormData) => {
     try {
-      await setGoals(data)
-      toast.success(`Goals saved for ${agentName}`)
+      await setBulkGoals(data)
+      toast.success(`Goals updated for all ${agents.length} agents`)
       onOpenChange(false)
+      form.reset()
     } catch (error) {
-      toast.error(`Failed to save goals for ${agentName}`)
+      toast.error("Failed to update bulk goals")
       console.error("Failed to save goals", error)
     }
   }
@@ -99,18 +86,13 @@ export function GoalSettingModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[480px] rounded-3xl p-8 border-none bg-white shadow-2xl font-sans">
-        {/* Direct children of DialogContent for accessibility */}
         <DialogHeader className="mb-6 space-y-2">
           <div className="w-12 h-12 bg-[#EEF2FF] rounded-2xl flex items-center justify-center text-primary mb-2">
-            <Target className="h-6 w-6" />
+            <Users className="h-6 w-6" />
           </div>
-          {/* Note: In shadcn, DialogTitle and DialogDescription should be rendered here.
-              If Radix is warning, we may need to ensure DialogHeader doesn't swallow them. 
-              But here we keep them as they are and see if removing the wrapper helps or just ensuring they are present.
-           */}
-          <DialogTitle className="text-[24px] font-bold text-[#111827] tracking-tight">Monthly Goals for {agentName}</DialogTitle>
+          <DialogTitle className="text-[24px] font-bold text-[#111827] tracking-tight">Set Goals for All Agents</DialogTitle>
           <DialogDescription className="text-[14px] font-medium text-gray-500">
-            Targets help your agents stay focused. You can adjust these anytime.
+            Applying these targets will overwrite existing goals for all {agents.length} team members.
           </DialogDescription>
         </DialogHeader>
 
@@ -136,7 +118,7 @@ export function GoalSettingModal({
                    placeholder={metric.placeholder}
                    className="h-[45px] bg-white border-[#d0d5dd] rounded-[8px] text-[16px] font-medium text-[#111827] placeholder:text-gray-400 focus-visible:ring-primary/10 focus-visible:border-primary/50 transition-all shadow-sm"
                    {...form.register(metric.key as any, { valueAsNumber: true })}
-                   disabled={saving || loading}
+                   disabled={saving}
                 />
                 {form.formState.errors[metric.key as keyof GoalsFormData] && (
                   <p className="text-[10px] font-bold text-destructive uppercase tracking-widest pl-1">
@@ -160,10 +142,10 @@ export function GoalSettingModal({
             <Button
               type="submit"
               className="flex-1 h-12 rounded-full bg-primary text-white font-bold shadow-lg shadow-primary/30 hover:bg-primary/90"
-              disabled={saving || loading}
+              disabled={saving}
             >
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Goals
+              Apply to All
             </Button>
           </DialogFooter>
         </form>

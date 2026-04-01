@@ -1,6 +1,5 @@
 import { Layout } from "./components/Layout"
 import { TeamSettingsContent } from "./modules/TeamSettings/TeamSettingsContent"
-import { Toaster } from "sonner"
 
 function App() {
   return (
@@ -8,7 +7,6 @@ function App() {
       <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
         <TeamSettingsContent />
       </div>
-      <Toaster position="bottom-right" richColors />
     </Layout>
   )
 }
