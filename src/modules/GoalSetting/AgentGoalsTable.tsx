@@ -41,6 +41,12 @@ export type AgentGoal = {
     uniqueConvos: number | null
     appointments: number | null
   } | null
+  actuals?: {
+    newLeads: number
+    calls: number
+    uniqueConvos: number
+    appointments: number
+  }
   month: string
 }
 
@@ -55,6 +61,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=sarah",
     role: "agent",
     goals: { newLeads: 25, calls: 80, uniqueConvos: 40, appointments: 12 },
+    actuals: { newLeads: 18, calls: 72, uniqueConvos: 35, appointments: 10 },
     month: "2026-04"
   },
   {
@@ -71,6 +78,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=jessica",
     role: "agent",
     goals: { newLeads: 30, calls: 100, uniqueConvos: 50, appointments: 15 },
+    actuals: { newLeads: 32, calls: 95, uniqueConvos: 48, appointments: 14 },
     month: "2026-04"
   },
   {
@@ -87,6 +95,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=amanda",
     role: "agent",
     goals: { newLeads: 15, calls: 60, uniqueConvos: 25, appointments: 8 },
+    actuals: { newLeads: 5, calls: 20, uniqueConvos: 10, appointments: 2 },
     month: "2026-04"
   },
   {
@@ -98,6 +107,45 @@ const MOCK_AGENTS: AgentGoal[] = [
     month: "2026-04"
   }
 ]
+
+const ProgressRing = ({ value, goal, size = 24 }: { value: number, goal: number, size?: number }) => {
+  const radius = (size - 4) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const percentage = Math.min(Math.max((value / goal) * 100, 0), 100);
+  const offset = circumference - (percentage / 100) * circumference;
+  
+  let color = "text-amber-500";
+  if (percentage >= 100) color = "text-emerald-500";
+  else if (percentage >= 50) color = "text-blue-500";
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle
+          className="text-gray-100"
+          strokeWidth="2"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+        <circle
+          className={cn(color, "transition-all duration-700 ease-in-out")}
+          strokeWidth="2"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          stroke="currentColor"
+          fill="transparent"
+          r={radius}
+          cx={size / 2}
+          cy={size / 2}
+        />
+      </svg>
+    </div>
+  )
+}
 
 export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps) {
   const [data, setData] = React.useState<AgentGoal[]>(MOCK_AGENTS)
@@ -258,76 +306,83 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                     </div>
                   </TableCell>
                   
-                  {/* Metric Columns */}
                   {["newLeads", "calls", "uniqueConvos", "appointments"].map((field) => (
                     <TableCell key={field}>
-                      {isEditing ? (
-                        <Input
-                          type="number"
-                          className="w-20 h-8 text-[13px] rounded-md"
-                          value={editValues[field as keyof typeof editValues] || ""}
-                          onChange={(e) => handleInputChange(field as keyof typeof editValues, e.target.value)}
-                        />
-                      ) : field === "appointments" && hasGoals ? (
-                        <HoverCard openDelay={100}>
-                          <HoverCardTrigger asChild>
-                            <span className="cursor-help font-bold text-slate-900 border-b-2 border-dotted border-blue-400/40 hover:border-blue-600 transition-colors">
-                              {agent.goals?.[field as keyof typeof agent.goals]}
-                            </span>
-                          </HoverCardTrigger>
-                          <HoverCardContent side="right" align="start" className="w-[280px] p-4 normal-case tracking-normal shadow-xl border-slate-200">
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-bold text-slate-800">Appointment Breakdown</h4>
-                                <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-mono font-bold text-slate-600 uppercase">
-                                  Total: {agent.goals?.appointments}
-                                </span>
-                              </div>
-                              
-                              <Separator className="bg-slate-100" />
-                              
-                              <div className="grid gap-3 pt-1">
-                                <div className="flex items-center justify-between text-[13px]">
-                                  <div className="flex items-center gap-2 text-slate-600">
-                                    <Home className="h-4 w-4 text-blue-500" />
-                                    <span>Property Showings</span>
-                                  </div>
-                                  <span className="font-mono font-medium text-slate-900">{Math.floor((agent.goals?.appointments || 0) * 0.5)}</span>
+                      <div className="flex items-center gap-3">
+                        {hasGoals && agent.actuals && (
+                          <ProgressRing 
+                            value={agent.actuals[field as keyof typeof agent.actuals]} 
+                            goal={agent.goals?.[field as keyof typeof agent.goals] || 1} 
+                          />
+                        )}
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            className="w-20 h-8 text-[13px] rounded-md"
+                            value={editValues[field as keyof typeof editValues] || ""}
+                            onChange={(e) => handleInputChange(field as keyof typeof editValues, e.target.value)}
+                          />
+                        ) : field === "appointments" && hasGoals ? (
+                          <HoverCard openDelay={100}>
+                            <HoverCardTrigger asChild>
+                              <span className="cursor-help font-bold text-slate-900 border-b-2 border-dotted border-blue-400/40 hover:border-blue-600 transition-colors">
+                                {agent.goals?.[field as keyof typeof agent.goals]}
+                              </span>
+                            </HoverCardTrigger>
+                            <HoverCardContent side="right" align="start" className="w-[280px] p-4 normal-case tracking-normal shadow-xl border-slate-200">
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-bold text-slate-800">Appointment Breakdown</h4>
+                                  <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-mono font-bold text-slate-600 uppercase">
+                                    Total: {agent.goals?.appointments}
+                                  </span>
                                 </div>
                                 
-                                <div className="flex items-center justify-between text-[13px]">
-                                  <div className="flex items-center gap-2 text-slate-600">
-                                    <Users className="h-4 w-4 text-purple-500" />
-                                    <span>Client Meetings</span>
-                                  </div>
-                                  <span className="font-mono font-medium text-slate-900">{Math.ceil((agent.goals?.appointments || 0) * 0.3)}</span>
-                                </div>
+                                <Separator className="bg-slate-100" />
                                 
-                                <div className="flex items-center justify-between text-[13px]">
-                                  <div className="flex items-center gap-2 text-slate-600">
-                                    <CalendarCheck className="h-4 w-4 text-emerald-500" />
-                                    <span>Open Houses</span>
+                                <div className="grid gap-3 pt-1">
+                                  <div className="flex items-center justify-between text-[13px]">
+                                    <div className="flex items-center gap-2 text-slate-600">
+                                      <Home className="h-4 w-4 text-blue-500" />
+                                      <span>Property Showings</span>
+                                    </div>
+                                    <span className="font-mono font-medium text-slate-900">{Math.floor((agent.goals?.appointments || 0) * 0.5)}</span>
                                   </div>
-                                  <span className="font-mono font-medium text-slate-900">{Math.ceil((agent.goals?.appointments || 0) * 0.2)}</span>
+                                  
+                                  <div className="flex items-center justify-between text-[13px]">
+                                    <div className="flex items-center gap-2 text-slate-600">
+                                      <Users className="h-4 w-4 text-purple-500" />
+                                      <span>Client Meetings</span>
+                                    </div>
+                                    <span className="font-mono font-medium text-slate-900">{Math.ceil((agent.goals?.appointments || 0) * 0.3)}</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center justify-between text-[13px]">
+                                    <div className="flex items-center gap-2 text-slate-600">
+                                      <CalendarCheck className="h-4 w-4 text-emerald-500" />
+                                      <span>Open Houses</span>
+                                    </div>
+                                    <span className="font-mono font-medium text-slate-900">{Math.ceil((agent.goals?.appointments || 0) * 0.2)}</span>
+                                  </div>
                                 </div>
-                              </div>
 
-                              <Separator className="bg-slate-100" />
-                              
-                              <p className="text-[10px] text-muted-foreground italic leading-tight">
-                                Includes both scheduled and completed events.
-                              </p>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      ) : (
-                        <div className={cn(
-                          "text-[14px]",
-                          hasGoals ? "font-semibold text-slate-900" : "font-medium text-gray-300"
-                        )}>
-                          {hasGoals ? agent.goals?.[field as keyof typeof agent.goals] : "—"}
-                        </div>
-                      )}
+                                <Separator className="bg-slate-100" />
+                                
+                                <p className="text-[10px] text-muted-foreground italic leading-tight">
+                                  Includes both scheduled and completed events.
+                                </p>
+                              </div>
+                            </HoverCardContent>
+                          </HoverCard>
+                        ) : (
+                          <div className={cn(
+                            "text-[14px]",
+                            hasGoals ? "font-semibold text-slate-900" : "font-medium text-gray-300"
+                          )}>
+                            {hasGoals ? agent.goals?.[field as keyof typeof agent.goals] : "—"}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                   ))}
 
