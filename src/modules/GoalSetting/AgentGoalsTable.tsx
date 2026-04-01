@@ -4,7 +4,9 @@ import {
   Check, 
   X, 
   Users,
-  Info
+  Info,
+  Home,
+  CalendarCheck
 } from "lucide-react"
 import { 
   Table, 
@@ -181,17 +183,36 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                     <HoverCardTrigger asChild>
                       <Info className="h-4 w-4 text-gray-400 cursor-help hover:text-gray-600 transition-colors" />
                     </HoverCardTrigger>
-                    <HoverCardContent className="w-72" side="top">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold text-[#060D4D]">Appointment Types</h4>
-                        <p className="text-xs text-gray-500">
-                          Tracks all engagement activities including:
-                        </p>
-                        <ul className="text-xs space-y-1.5 list-disc pl-4 text-gray-600">
-                          <li><strong>Property Showings:</strong> In-person tours of listings for prospective buyers.</li>
-                          <li><strong>Client Meetings:</strong> Strategy, listing, or consultation sessions.</li>
-                          <li><strong>Open Houses:</strong> Scheduled public marketing events.</li>
-                        </ul>
+                    <HoverCardContent className="w-80 p-4" side="top" sideOffset={10}>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-[#060D4D]">Appointment Types</h4>
+                          <span className="text-[10px] uppercase font-bold text-gray-400">Definitions</span>
+                        </div>
+                        <Separator />
+                        <div className="space-y-4">
+                          <div className="flex gap-3">
+                            <Home className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-gray-700">Property Showings</p>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">In-person tours of listings for prospective buyer clients.</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <Users className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-gray-700">Client Meetings</p>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">Strategic consultations, listing presentations, or signing sessions.</p>
+                            </div>
+                          </div>
+                          <div className="flex gap-3">
+                            <CalendarCheck className="h-4 w-4 text-gray-400 shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-xs font-bold text-gray-700">Open Houses</p>
+                              <p className="text-[11px] text-gray-500 leading-relaxed">Scheduled public marketing events to drive high volume traffic.</p>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </HoverCardContent>
                   </HoverCard>
@@ -238,29 +259,38 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                       ) : field === "appointments" && hasGoals ? (
                         <HoverCard openDelay={100}>
                           <HoverCardTrigger asChild>
-                            <div className="text-[14px] font-medium text-gray-700 cursor-pointer hover:text-blue-600 hover:underline decoration-blue-600/30 underline-offset-4">
+                            <div className="w-fit text-[14px] font-medium text-gray-700 cursor-pointer underline decoration-[#060D4D]/20 underline-offset-4 hover:decoration-[#060D4D]/50 transition-colors">
                               {agent.goals?.[field as keyof typeof agent.goals]}
                             </div>
                           </HoverCardTrigger>
-                          <HoverCardContent side="right" align="start" className="w-56 p-4">
+                          <HoverCardContent side="right" align="center" sideOffset={12} className="w-60 p-4">
                             <div className="space-y-3">
                               <div className="flex justify-between items-center">
                                 <span className="text-xs font-semibold text-[#060D4D]">Breakdown</span>
                                 <span className="text-[10px] uppercase font-bold text-gray-400">Total: {agent.goals?.appointments}</span>
                               </div>
                               <Separator />
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-[13px]">
-                                  <span className="text-gray-500">🏠 Showings</span>
-                                  <span className="font-mono font-bold">{Math.floor((agent.goals?.appointments || 0) * 0.5)}</span>
+                              <div className="space-y-3 pt-1">
+                                <div className="flex justify-between items-center text-[13px]">
+                                  <div className="flex items-center gap-2">
+                                    <Home className="h-3.5 w-3.5 text-gray-400" />
+                                    <span className="text-gray-500">Showings</span>
+                                  </div>
+                                  <span className="font-mono font-bold text-[#060D4D]">{Math.floor((agent.goals?.appointments || 0) * 0.5)}</span>
                                 </div>
-                                <div className="flex justify-between text-[13px]">
-                                  <span className="text-gray-500">🤝 Meetings</span>
-                                  <span className="font-mono font-bold">{Math.ceil((agent.goals?.appointments || 0) * 0.3)}</span>
+                                <div className="flex justify-between items-center text-[13px]">
+                                  <div className="flex items-center gap-2">
+                                    <Users className="h-3.5 w-3.5 text-gray-400" />
+                                    <span className="text-gray-500">Meetings</span>
+                                  </div>
+                                  <span className="font-mono font-bold text-[#060D4D]">{Math.ceil((agent.goals?.appointments || 0) * 0.3)}</span>
                                 </div>
-                                <div className="flex justify-between text-[13px]">
-                                  <span className="text-gray-500">📋 Open Houses</span>
-                                  <span className="font-mono font-bold">{Math.ceil((agent.goals?.appointments || 0) * 0.2)}</span>
+                                <div className="flex justify-between items-center text-[13px]">
+                                  <div className="flex items-center gap-2">
+                                    <CalendarCheck className="h-3.5 w-3.5 text-gray-400" />
+                                    <span className="text-gray-500">Open Houses</span>
+                                  </div>
+                                  <span className="font-mono font-bold text-[#060D4D]">{Math.ceil((agent.goals?.appointments || 0) * 0.2)}</span>
                                 </div>
                               </div>
                             </div>
