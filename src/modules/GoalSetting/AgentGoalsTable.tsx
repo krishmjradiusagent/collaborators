@@ -1,6 +1,5 @@
 import * as React from "react"
 import { 
-  Pencil, 
   Check, 
   X, 
   Users,
@@ -11,7 +10,6 @@ import {
   Flame,
   PencilLine,
   TimerOff,
-  UserMinus,
   MoreHorizontal
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
@@ -56,6 +54,7 @@ export type AgentGoal = {
     appointments: number
   }
   streak?: number
+  paused?: boolean
   month: string
 }
 
@@ -203,92 +202,47 @@ const DopamineNumber = ({ value }: { value: number }) => {
   );
 };
 
-const AppointmentCell = ({ total, streak, agentName }: { total: number, streak: number, agentName: string }) => {
+const AppointmentCell = ({ total }: { total: number }) => {
   return (
-    <div className="flex items-center justify-between group/apt px-2 py-1 rounded-md transition-all hover:bg-slate-50/50 hover:shadow-sm border border-transparent hover:border-slate-200/60">
-      <div className="flex items-center gap-3">
-        <AnimatePresence>
-          {streak > 0 && (
-            <motion.div 
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0, opacity: 0 }}
-              className="flex items-center gap-0.5"
-            >
-              <Flame className={cn(
-                "h-4 w-4 fill-current",
-                streak >= 7 ? "text-indigo-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" : "text-orange-500"
-              )} />
-              <span className={cn(
-                "text-[10px] font-black italic",
-                streak >= 7 ? "text-indigo-600" : "text-orange-600"
-              )}>{streak}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <HoverCard openDelay={100}>
-          <HoverCardTrigger asChild>
-            <button className="border-b border-dotted border-slate-300 hover:border-slate-900 transition-colors">
-              <DopamineNumber value={total} />
-            </button>
-          </HoverCardTrigger>
-          <HoverCardContent side="right" align="start" className="w-64 p-4 shadow-xl border-slate-200 backdrop-blur-md bg-white/95 normal-case tracking-normal">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Breakdown</h4>
-                <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">TOTAL: {total}</span>
+    <HoverCard openDelay={100}>
+      <HoverCardTrigger asChild>
+        <button className="border-b border-dotted border-slate-300 hover:border-slate-900 transition-colors">
+          <DopamineNumber value={total} />
+        </button>
+      </HoverCardTrigger>
+      <HoverCardContent side="right" align="start" className="w-64 p-4 shadow-xl border-slate-200 bg-white border normal-case tracking-normal z-50">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Breakdown</h4>
+            <span className="text-[10px] bg-slate-100 px-2 py-0.5 rounded-full font-bold">TOTAL: {total}</span>
+          </div>
+          <Separator />
+          <div className="grid gap-2">
+            <div className="flex justify-between text-sm items-center">
+              <div className="flex items-center gap-2 text-slate-600">
+                <Home className="h-3.5 w-3.5 text-blue-500" />
+                <span>Showings</span>
               </div>
-              <Separator />
-              <div className="grid gap-2">
-                <div className="flex justify-between text-sm items-center">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Home className="h-3.5 w-3.5 text-blue-500" />
-                    <span>Showings</span>
-                  </div>
-                  <span className="font-mono text-slate-900">{Math.floor(total * 0.5)}</span>
-                </div>
-                <div className="flex justify-between text-sm items-center">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <Users className="h-3.5 w-3.5 text-purple-500" />
-                    <span>Meetings</span>
-                  </div>
-                  <span className="font-mono text-slate-900">{Math.ceil(total * 0.3)}</span>
-                </div>
-                <div className="flex justify-between text-sm items-center">
-                  <div className="flex items-center gap-2 text-slate-600">
-                    <CalendarCheck className="h-3.5 w-3.5 text-emerald-500" />
-                    <span>Open Houses</span>
-                  </div>
-                  <span className="font-mono text-slate-900">{Math.ceil(total * 0.2)}</span>
-                </div>
-              </div>
+              <span className="font-mono text-slate-900">{Math.floor(total * 0.5)}</span>
             </div>
-          </HoverCardContent>
-        </HoverCard>
-      </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-7 w-7 p-0 opacity-0 group-hover/apt:opacity-100 transition-opacity">
-            <MoreHorizontal className="h-4 w-4 text-slate-400" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
-          <DropdownMenuLabel className="text-[10px] uppercase text-slate-400">Manage {agentName.split(' ')[0]}</DropdownMenuLabel>
-          <DropdownMenuItem className="gap-2 focus:text-blue-600 cursor-pointer">
-            <PencilLine className="h-4 w-4 text-blue-500" /> Edit Goals
-          </DropdownMenuItem>
-          <DropdownMenuItem className="gap-2 focus:text-amber-600 cursor-pointer">
-            <TimerOff className="h-4 w-4 text-amber-500" /> Pause Tracking
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem className="gap-2 text-destructive focus:bg-red-50 focus:text-destructive cursor-pointer">
-            <UserMinus className="h-4 w-4" /> Remove Agent
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+            <div className="flex justify-between text-sm items-center">
+              <div className="flex items-center gap-2 text-slate-600">
+                <Users className="h-3.5 w-3.5 text-purple-500" />
+                <span>Meetings</span>
+              </div>
+              <span className="font-mono text-slate-900">{Math.ceil(total * 0.3)}</span>
+            </div>
+            <div className="flex justify-between text-sm items-center">
+              <div className="flex items-center gap-2 text-slate-600">
+                <CalendarCheck className="h-3.5 w-3.5 text-emerald-500" />
+                <span>Open Houses</span>
+              </div>
+              <span className="font-mono text-slate-900">{Math.ceil(total * 0.2)}</span>
+            </div>
+          </div>
+        </div>
+      </HoverCardContent>
+    </HoverCard>
   );
 };
 
@@ -342,6 +296,36 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
     setEditValues(prev => ({ ...prev, [field]: Math.min(Math.max(num, 0), 999) }))
   }
 
+  const handlePauseTracking = (agent: AgentGoal) => {
+    const willPause = !agent.paused
+    setData(prev => prev.map(item =>
+      item.agentId === agent.agentId
+        ? { ...item, paused: willPause }
+        : item
+    ))
+    if (willPause) {
+      toast("Tracking paused", {
+        description: `${agent.name}'s progress will not be recorded until tracking is resumed.`,
+        icon: "⏸️",
+        action: {
+          label: "Undo",
+          onClick: () => {
+            setData(prev => prev.map(item =>
+              item.agentId === agent.agentId
+                ? { ...item, paused: false }
+                : item
+            ))
+            toast.success(`Tracking resumed for ${agent.name}`)
+          },
+        },
+      })
+    } else {
+      toast.success(`Tracking resumed for ${agent.name}`, {
+        description: "Goals and actuals will now update in real-time.",
+      })
+    }
+  }
+
   return (
     <div className="w-full space-y-6 font-sans">
       <div className="pt-8 border-t border-[#EFEFEF] -mx-8 px-8 flex items-start justify-between">
@@ -388,7 +372,7 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                 </div>
               </TableHead>
               <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">Status</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -421,7 +405,7 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                                   )} />
                                 </div>
                               </HoverCardTrigger>
-                              <HoverCardContent className="w-56 p-3 normal-case tracking-normal shadow-xl border-slate-200" side="right" sideOffset={10}>
+                              <HoverCardContent className="w-56 p-3 normal-case tracking-normal shadow-xl border-slate-200 bg-white z-50" side="right" sideOffset={10}>
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2">
                                     <div className={cn(
@@ -475,8 +459,6 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                         ) : field === "appointments" && hasGoals ? (
                           <AppointmentCell 
                             total={agent.goals?.appointments || 0} 
-                            streak={agent.streak || 0}
-                            agentName={agent.name}
                           />
                         ) : (
                           <div className={cn(
@@ -532,32 +514,39 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                   </TableCell>
 
                   <TableCell className="text-right">
-                    {!isAdmin && (
-                      <div className="flex items-center justify-end">
-                        {isEditing ? (
-                          <div className="flex items-center gap-2">
-                             <button 
-                               onClick={() => handleSave(agent.agentId)}
-                               className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                             >
-                               <Check className="h-4 w-4" />
-                             </button>
-                             <button 
-                               onClick={handleCancel}
-                               className="p-1 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
-                             >
-                               <X className="h-4 w-4" />
-                             </button>
-                          </div>
-                        ) : (
-                          <button 
-                            onClick={() => handleEdit(agent)}
-                            className="p-1.5 opacity-0 group-hover:opacity-100 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-md transition-all"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                        )}
+                    {isEditing ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleSave(agent.agentId)}
+                          className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button 
+                          onClick={handleCancel}
+                          className="p-1 text-gray-400 hover:bg-gray-100 rounded-md transition-colors"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100">
+                            <MoreHorizontal className="h-4 w-4 text-slate-400" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-52 bg-white border border-slate-200 shadow-xl z-50">
+                          <DropdownMenuLabel className="text-[10px] uppercase text-slate-400 font-bold p-3">Manage Agent</DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-slate-100" />
+                          <DropdownMenuItem className="gap-2 focus:bg-slate-50 cursor-pointer p-3" onClick={() => handleEdit(agent)}>
+                            <PencilLine className="h-4 w-4 text-blue-500" /> Edit Goals
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="gap-2 focus:bg-slate-50 cursor-pointer p-3" onClick={() => handlePauseTracking(agent)}>
+                            <TimerOff className="h-4 w-4 text-amber-500" /> {agent.paused ? "Resume Tracking" : "Pause Tracking"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     )}
                   </TableCell>
                 </TableRow>
