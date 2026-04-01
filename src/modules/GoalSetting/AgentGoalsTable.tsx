@@ -307,33 +307,38 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
               Breakdown of appointment goals for {breakdownAgent?.month}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4 pb-4 border-b border-gray-100">
-               <div>
-                  <p className="text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-1">Scheduled</p>
-                  <p className="text-2xl font-semibold text-[#060D4D]">{breakdownAgent?.goals?.appointments || 0}</p>
+          <div className="pt-2 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="bg-[#F9FAFB] p-4 rounded-[16px] border border-[#F0F0F0]">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-1">Scheduled</p>
+                  <p className="text-3xl font-semibold text-[#060D4D]">{breakdownAgent?.goals?.appointments || 0}</p>
                </div>
-               <div>
-                  <p className="text-[12px] font-bold text-gray-400 uppercase tracking-widest mb-1">Completed</p>
-                  <p className="text-2xl font-semibold text-emerald-600">{Math.floor((breakdownAgent?.goals?.appointments || 0) * 0.8)}</p>
+               <div className="bg-[#F0FDF4] p-4 rounded-[16px] border border-[#DCFCE7]">
+                  <p className="text-[11px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Completed</p>
+                  <p className="text-3xl font-semibold text-emerald-700">{Math.floor((breakdownAgent?.goals?.appointments || 0) * 0.8)}</p>
                </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-1">
                {[
                  { label: "Property Showings", value: Math.floor((breakdownAgent?.goals?.appointments || 0) * 0.5) },
                  { label: "Client Meetings", value: Math.ceil((breakdownAgent?.goals?.appointments || 0) * 0.3) },
                  { label: "Open Houses", value: Math.ceil((breakdownAgent?.goals?.appointments || 0) * 0.2) }
                ].map((item, i) => (
-                 <div key={i} className="flex items-center justify-between py-1">
-                    <span className="text-sm font-medium text-gray-600">{item.label}</span>
-                    <span className="text-sm font-bold text-gray-900">{item.value}</span>
+                 <div key={i} className="flex items-center justify-between py-3 border-b border-[#F5F5F5] last:border-0 px-1">
+                    <span className="text-[15px] font-medium text-gray-600">{item.label}</span>
+                    <span className="text-[15px] font-bold text-gray-900">{item.value}</span>
                  </div>
                ))}
             </div>
           </div>
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => setBreakdownAgent(null)}>Close</Button>
+          <div className="flex justify-end pt-4">
+            <Button 
+               className="rounded-xl bg-black text-white hover:bg-gray-800 px-6 h-11 text-[15px] font-medium transition-all"
+               onClick={() => setBreakdownAgent(null)}
+            >
+               Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
