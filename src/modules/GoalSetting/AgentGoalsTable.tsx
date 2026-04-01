@@ -7,7 +7,8 @@ import {
   Info,
   Home,
   CalendarCheck,
-  Star
+  Star,
+  Flame
 } from "lucide-react"
 import { 
   Table, 
@@ -48,6 +49,7 @@ export type AgentGoal = {
     uniqueConvos: number
     appointments: number
   }
+  streak?: number
   month: string
 }
 
@@ -63,6 +65,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     role: "agent",
     goals: { newLeads: 25, calls: 80, uniqueConvos: 40, appointments: 12 },
     actuals: { newLeads: 18, calls: 72, uniqueConvos: 35, appointments: 10 },
+    streak: 8,
     month: "2026-04"
   },
   {
@@ -71,6 +74,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=marcus",
     role: "agent",
     goals: null,
+    streak: 0,
     month: "2026-04"
   },
   {
@@ -80,6 +84,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     role: "agent",
     goals: { newLeads: 30, calls: 100, uniqueConvos: 50, appointments: 15 },
     actuals: { newLeads: 32, calls: 95, uniqueConvos: 48, appointments: 14 },
+    streak: 12,
     month: "2026-04"
   },
   {
@@ -88,6 +93,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=david",
     role: "agent",
     goals: null,
+    streak: 0,
     month: "2026-04"
   },
   {
@@ -97,6 +103,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     role: "agent",
     goals: { newLeads: 15, calls: 60, uniqueConvos: 25, appointments: 8 },
     actuals: { newLeads: 5, calls: 20, uniqueConvos: 10, appointments: 2 },
+    streak: 4,
     month: "2026-04"
   },
   {
@@ -105,6 +112,7 @@ const MOCK_AGENTS: AgentGoal[] = [
     avatarUrl: "https://i.pravatar.cc/150?u=laura",
     role: "agent",
     goals: null,
+    streak: 0,
     month: "2026-04"
   }
 ]
@@ -299,7 +307,45 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-[14px] font-semibold text-gray-900 leading-none mb-1">{agent.name}</span>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="text-[14px] font-semibold text-gray-900 leading-none">{agent.name}</span>
+                          {(agent.streak || 0) >= 3 && (
+                            <HoverCard openDelay={100}>
+                              <HoverCardTrigger asChild>
+                                <div className="cursor-help">
+                                  <Flame className={cn(
+                                    "h-3.5 w-3.5",
+                                    (agent.streak || 0) >= 7 
+                                      ? "text-indigo-500 fill-indigo-500/20 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" 
+                                      : "text-orange-500 fill-orange-500/20"
+                                  )} />
+                                </div>
+                              </HoverCardTrigger>
+                              <HoverCardContent className="w-56 p-3 normal-case tracking-normal shadow-xl border-slate-200" side="right" sideOffset={10}>
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <div className={cn(
+                                      "p-1.5 rounded-md",
+                                      (agent.streak || 0) >= 7 ? "bg-indigo-50" : "bg-orange-50"
+                                    )}>
+                                      <Flame className={cn(
+                                        "h-4 w-4",
+                                        (agent.streak || 0) >= 7 ? "text-indigo-600" : "text-orange-600"
+                                      )} />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-800">
+                                      {(agent.streak || 0) >= 7 ? "Super Streak!" : "Momentum Streak"}
+                                    </p>
+                                  </div>
+                                  <Separator className="bg-slate-100" />
+                                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                                    {agent.name.split(' ')[0]} has hit their primary goal for <span className="font-bold text-slate-700">{agent.streak} consecutive days</span>.
+                                  </p>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          )}
+                        </div>
                         <Badge variant="outline" className="w-fit h-4 text-[9px] uppercase tracking-tighter px-1.5 border-gray-200 text-gray-400 font-bold">
                           {agent.role === "team_lead" ? "Team Lead" : "Agent"}
                         </Badge>
