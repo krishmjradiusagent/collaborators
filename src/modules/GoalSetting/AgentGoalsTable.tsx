@@ -17,13 +17,6 @@ import { Badge } from "../../components/ui/Badge"
 import { Button } from "../../components/ui/Button"
 import { Input } from "../../components/ui/Input"
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/Avatar"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "../../components/ui/Select"
 import { toast } from "sonner"
 import { BulkGoalSettingModal } from "./BulkGoalSettingModal"
 import { cn } from "../../lib/utils"
@@ -107,7 +100,6 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
     appointments: 0
   })
   const [bulkModalOpen, setBulkModalOpen] = React.useState(false)
-  const [selectedMonth, setSelectedMonth] = React.useState("2026-04")
 
   const isAdmin = role === "adminView"
 
@@ -150,32 +142,18 @@ export function AgentGoalsTable({ role = "teamLeadView" }: AgentGoalsTableProps)
 
   return (
     <div className="w-full space-y-6 font-sans">
-      <div className="pt-8 border-t border-[#EFEFEF] -mx-8 px-8 space-y-1">
-        <h2 className="text-xl font-semibold text-[#111827]">Goals</h2>
-        <p className="text-sm text-muted-foreground">Set monthly targets for your team</p>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-            <SelectTrigger className="w-[180px] h-9 rounded-lg border-[#e5e7eb] font-medium text-gray-700">
-              <SelectValue placeholder="Select month" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl border-none shadow-xl">
-              <SelectItem value="2026-03">March 2026</SelectItem>
-              <SelectItem value="2026-04">April 2026</SelectItem>
-              <SelectItem value="2026-05">May 2026</SelectItem>
-            </SelectContent>
-          </Select>
-          <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Active Month</span>
+      <div className="pt-8 border-t border-[#EFEFEF] -mx-8 px-8 flex items-start justify-between">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold text-[#111827]">Goals</h2>
+          <p className="text-sm text-muted-foreground">Set monthly targets for your team</p>
         </div>
-        
-        {!isAdmin && (
+
+        {role === "teamLeadView" && (
           <Button 
+            className="rounded-full bg-indigo-600 hover:bg-indigo-700 h-10 px-6 gap-2 shadow-lg shadow-indigo-100 mt-1"
             onClick={() => setBulkModalOpen(true)}
-            className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 h-10 font-bold shadow-lg shadow-primary/20"
           >
-            <Users className="mr-2 h-4 w-4" />
+            <Users className="h-4 w-4" />
             Set goals for all
           </Button>
         )}
