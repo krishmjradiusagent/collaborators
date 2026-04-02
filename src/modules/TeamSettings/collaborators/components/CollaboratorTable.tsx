@@ -75,9 +75,9 @@ export function CollaboratorTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-white border-slate-100 text-slate-700 py-2 rounded-xl shadow-2xl">
-              <DropdownMenuLabel className="text-[10px] uppercase text-slate-400 font-black p-3 tracking-[.25em]">Partner Type</DropdownMenuLabel>
+              <DropdownMenuLabel className="text-[10px] uppercase text-slate-400 font-black p-3 tracking-[.25em]">Collaborator Type</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-slate-50 my-1" />
-              <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-lg mx-1" onClick={() => setFilterType("all")}>All Partners</DropdownMenuItem>
+              <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-lg mx-1" onClick={() => setFilterType("all")}>All Collaborators</DropdownMenuItem>
               <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-lg mx-1" onClick={() => setFilterType("tc")}>Transaction Coordinator</DropdownMenuItem>
               <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-lg mx-1" onClick={() => setFilterType("lender")}>Lender</DropdownMenuItem>
               <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-lg mx-1" onClick={() => setFilterType("vendor")}>Vendor</DropdownMenuItem>
@@ -108,7 +108,7 @@ export function CollaboratorTable({
             className="rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-10 px-6 gap-2 shadow-lg shadow-blue-100 mt-1"
             onClick={onAddCollaborator}
           >
-            <Plus className="h-4 w-4" /> Add Partner
+            <Plus className="h-4 w-4" /> Add Collaborator
           </Button>
         </div>
       </div>
@@ -122,7 +122,7 @@ export function CollaboratorTable({
                 <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-blue-500 border-4 border-white animate-bounce" />
              </div>
              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-wide">No Partners Connected</h3>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-wide">No Collaborators Connected</h3>
                 <p className="text-[15px] text-slate-500 font-bold max-w-[340px] leading-relaxed mx-auto">
                    Build your core collaboration network by inviting TCs, Lenders, and Vendors to your team hub.
                 </p>

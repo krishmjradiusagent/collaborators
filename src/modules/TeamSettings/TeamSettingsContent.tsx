@@ -73,10 +73,8 @@ export function TeamSettingsContent() {
         <AgentGoalsTable role="teamLeadView" />
       </div>
 
-      <hr className="border-slate-200" />
-
-      {/* NEW: Collaborators Section - Transitioned to Light Mode */}
-      <div className="bg-[#f9fafb] border-t border-b border-slate-200 -mx-8 px-8 py-16 shadow-inner">
+      {/* NEW: Collaborators Section - Full Visual Parity with Goals */}
+      <div className="bg-white border-t border-b border-[#EFEFEF] -mx-8 px-8 py-16">
         <CollaboratorsSection />
       </div>
 
