@@ -125,7 +125,7 @@ export function ContextSwitcher() {
              <Separator className="my-2 bg-slate-50 mx-3" />
 
              {/* Transaction Switching (Simplified for Demo) */}
-             <CommandGroup heading={<span className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 opacity-60">Assigned Deals</span>}>
+             <CommandGroup heading={<span className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 opacity-60">Assigned Transactions</span>}>
                 <CommandItem
                   onSelect={() => {
                     setSelectedTransaction({ id: 'tx1', address: '123 Mission St, Apt 4B', clientId: 'c1' })

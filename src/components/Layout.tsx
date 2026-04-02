@@ -43,18 +43,26 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
         <div className="flex items-center gap-4">
            {/* Dynamic Team Logo & Identity */}
            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-xl shadow-sm" style={{ backgroundColor: selectedTeam?.primaryColor }}>
-                 {selectedTeam?.logo ? (
-                   <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-full h-full object-contain p-1" />
-                 ) : (
-                   <span className="text-white font-black text-[12px] tracking-tighter">
-                     {selectedTeam?.name.split(' ').map(n => n[0]).join('') || 'RA'}
-                   </span>
-                 )}
-              </div>
+              {(currentRole === 'TEAM_LEAD' || currentRole === 'AGENT') ? (
+                <div className="w-10 h-10 flex items-center justify-center bg-[#5A5FF2] rounded-full shadow-sm">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 14L12 8L18 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              ) : (
+                <div className="w-10 h-10 flex items-center justify-center bg-slate-900 rounded-xl shadow-sm" style={{ backgroundColor: selectedTeam?.primaryColor }}>
+                  {selectedTeam?.logo ? (
+                    <img src={selectedTeam.logo} alt={selectedTeam.name} className="w-full h-full object-contain p-1" />
+                  ) : (
+                    <span className="text-white font-black text-[12px] tracking-tighter">
+                      {selectedTeam?.name.split(' ').map(n => n[0]).join('') || 'RA'}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="flex flex-col">
                 <span className="text-[14px] font-black tracking-[0.1em] text-[#303030] uppercase">
-                  {selectedTeam?.name || 'RADIUS'}
+                  {(currentRole === 'TEAM_LEAD' || currentRole === 'AGENT') ? 'RADIUS' : (selectedTeam?.name || 'RADIUS')}
                 </span>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none">
                   {currentRole.replace(/_/g, ' ')}
