@@ -6,6 +6,9 @@ import { ClientProfilePage } from "./modules/Clients/components/ClientProfilePag
 import { Client } from "./modules/Clients/types"
 import { TransactionsPage } from "./modules/Transactions/components/TransactionsPage"
 
+import { RoleProvider } from "./contexts/RoleContext"
+import { FloatingRoleToggler } from "./components/RoleSwitcher"
+
 function App() {
   const [activeTab, setActiveTab] = React.useState("Team settings")
   const [selectedClient, setSelectedClient] = React.useState<Client | null>(null)
@@ -54,11 +57,14 @@ function App() {
   }
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={handleSidebarClick}>
-      <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {renderContent()}
-      </div>
-    </Layout>
+    <RoleProvider>
+      <Layout activeTab={activeTab} setActiveTab={handleSidebarClick}>
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+          {renderContent()}
+        </div>
+      </Layout>
+      <FloatingRoleToggler />
+    </RoleProvider>
   )
 }
 

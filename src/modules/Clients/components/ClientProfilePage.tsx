@@ -15,6 +15,7 @@ import {
   Users,
   ShieldCheck
 } from "lucide-react"
+import { useRole } from "../../../contexts/RoleContext"
 import { 
   Tooltip, 
   TooltipContent, 
@@ -45,7 +46,9 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
     clientAssignments.some(a => a.collaboratorId === c.id)
   )
 
-  const tabs = ["Activity", "Searches", "Transactions", "Notes", "Reminders", "Property recommendations"]
+  const { isCollaborator } = useRole()
+  const baseTabs = ["Activity", "Searches", "Transactions", "Notes", "Reminders", "Property recommendations"]
+  const tabs = isCollaborator ? baseTabs.filter(t => t !== "Property recommendations" && t !== "Searches") : baseTabs
 
   const stats = [
     { label: "Email", value: client.email, sub: "+2 emails", icon: Mail },
@@ -151,23 +154,25 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
             </span>
          </div>
 
-         {/* AI Toggle Bar */}
-         <div className="mt-8 p-5 bg-[#5A5FF2]/5 rounded-[24px] border border-[#5A5FF2]/10 flex items-center justify-between group hover:border-[#5A5FF2]/40 hover:bg-[#5A5FF2]/10 transition-all cursor-pointer shadow-sm mx-0.5">
-            <div className="flex items-center gap-4">
-               <div className="size-11 rounded-2xl bg-white shadow-radius-nav flex items-center justify-center text-[#5A5FF2] group-hover:scale-110 transition-transform">
-                  <Send className="h-5 w-5 rotate-[-45deg] scale-x-[-1] fill-[#5A5FF2]/5 stroke-[#5A5FF2] stroke-[2px]" />
-               </div>
-               <div className="flex flex-col">
-                  <span className="font-black text-[16px] text-slate-900 tracking-tight">AI Prospecting</span>
-                  <span className="text-[12px] text-slate-400 font-medium">Automatic lead matching and smart outreach</span>
-               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-6 bg-[#5A5FF2] rounded-full relative shadow-inner overflow-hidden border-2 border-[#5A5FF2]">
-                 <div className="absolute right-0.5 top-0.5 w-[16px] h-[16px] bg-white rounded-full shadow-lg transition-all" />
+         {/* AI Toggle Bar - Permission Guarded */}
+         {!isCollaborator && (
+           <div className="mt-8 p-5 bg-[#5A5FF2]/5 rounded-[24px] border border-[#5A5FF2]/10 flex items-center justify-between group hover:border-[#5A5FF2]/40 hover:bg-[#5A5FF2]/10 transition-all cursor-pointer shadow-sm mx-0.5">
+              <div className="flex items-center gap-4">
+                 <div className="size-11 rounded-2xl bg-white shadow-radius-nav flex items-center justify-center text-[#5A5FF2] group-hover:scale-110 transition-transform">
+                    <Send className="h-5 w-5 rotate-[-45deg] scale-x-[-1] fill-[#5A5FF2]/5 stroke-[#5A5FF2] stroke-[2px]" />
+                 </div>
+                 <div className="flex flex-col">
+                    <span className="font-black text-[16px] text-slate-900 tracking-tight">AI Prospecting</span>
+                    <span className="text-[12px] text-slate-400 font-medium">Automatic lead matching and smart outreach</span>
+                 </div>
               </div>
-            </div>
-         </div>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-6 bg-[#5A5FF2] rounded-full relative shadow-inner overflow-hidden border-2 border-[#5A5FF2]">
+                   <div className="absolute right-0.5 top-0.5 w-[16px] h-[16px] bg-white rounded-full shadow-lg transition-all" />
+                </div>
+              </div>
+           </div>
+         )}
          
          {/* Accordions */}
          <div className="flex flex-col mt-8 gap-px bg-slate-50 border border-slate-100 rounded-[24px] overflow-hidden shadow-sm">

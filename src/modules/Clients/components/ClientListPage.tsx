@@ -14,6 +14,7 @@ import {
 import { Button } from "../../../components/ui/Button"
 import { Input } from "../../../components/ui/Input"
 import { Badge } from "../../../components/ui/Badge"
+import { useRole } from "@/contexts/RoleContext"
 import {
   Table,
   TableBody,
@@ -50,8 +51,8 @@ export function ClientListPage({ }: ClientListPageProps) {
   // Local state for instant updates
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
 
-  // Permission Context (Agent/Team Lead check)
-  const userRole = "Team Lead" // This should come from Auth context in production
+  const { isCollaborator, currentRole } = useRole()
+  const userRole = currentRole 
 
   const handleRowClick = (client: Client) => {
     setShouldExpandCollab(false) // Default: don't specific expand on row click
@@ -72,19 +73,29 @@ export function ClientListPage({ }: ClientListPageProps) {
     setIsAssignModalOpen(true)
   }
 
-  const handleAssignSuccess = (collaboratorId: string, type: 'client' | 'transaction', transactionId?: string) => {
+  const handleAssignSuccess = (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => {
     if (!clientForAssign) return
 
-    const newAssignment = {
-      id: `list-a-${Date.now()}`,
-      clientId: clientForAssign.id,
-      collaboratorId,
-      assignmentType: type,
-      transactionId: transactionId,
-      assignedAt: new Date().toISOString()
+    if (type === 'transaction' && transactionIds) {
+      const newAssignments = transactionIds.map(txId => ({
+        id: `list-a-${Date.now()}-${txId}`,
+        clientId: clientForAssign.id,
+        collaboratorId,
+        assignmentType: type,
+        transactionId: txId,
+        assignedAt: new Date().toISOString()
+      }))
+      setLocalAssignments(prev => [...prev, ...newAssignments])
+    } else {
+      const newAssignment = {
+        id: `list-a-${Date.now()}`,
+        clientId: clientForAssign.id,
+        collaboratorId,
+        assignmentType: type,
+        assignedAt: new Date().toISOString()
+      }
+      setLocalAssignments(prev => [...prev, newAssignment])
     }
-
-    setLocalAssignments(prev => [...prev, newAssignment])
   }
 
   return (
@@ -111,7 +122,7 @@ export function ClientListPage({ }: ClientListPageProps) {
             globalPool={GLOBAL_COLLABORATOR_POOL}
             transactions={MOCK_TRANSACTIONS.filter(tx => tx.clientId === clientForAssign.id)}
             clientName={clientForAssign.name}
-            canInvite={userRole === "Team Lead" || userRole === "Admin"}
+            canInvite={userRole === "TEAM_LEAD"}
             defaultType="client"
           />
         )}
@@ -140,15 +151,19 @@ export function ClientListPage({ }: ClientListPageProps) {
             <Button variant="outline" className="flex items-center gap-2 text-[#373758] font-bold border-[#EFEFEF] rounded-[10px] h-10">
               <Grid className="h-4 w-4" /> Integrations
             </Button>
-            <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Client
-            </Button>
-            <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-              <Upload className="h-4 w-4" /> Import
-            </Button>
-            <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-              <Download className="h-4 w-4" /> Export
-            </Button>
+          {!isCollaborator && (
+            <div className="flex items-center gap-3">
+              <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
+                <Plus className="h-4 w-4" /> Client
+              </Button>
+              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
+                <Upload className="h-4 w-4" /> Import
+              </Button>
+              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
+                <Download className="h-4 w-4" /> Export
+              </Button>
+            </div>
+          )}
           </div>
         </div>
 
@@ -294,7 +309,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
                               None
                             </span>
-                            {(userRole === "Team Lead" || userRole === "Agent") && (
+                            {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
                               <button
                                 onClick={(e) => handleAddCollabClick(e, client)}
                                 className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -314,7 +329,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               </span>
                               <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
-                            {(userRole === "Team Lead" || userRole === "Agent") && (
+                            {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
                               <button
                                 onClick={(e) => handleAddCollabClick(e, client)}
                                 className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -341,7 +356,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                                 </span>
                                 <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                               </div>
-                              {(userRole === "Team Lead" || userRole === "Agent") && (
+                              {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
                                 <button
                                   onClick={(e) => handleAddCollabClick(e, client)}
                                   className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -369,7 +384,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               >
                                 {assignedCollabs.length - 1} more
                               </button>
-                              {(userRole === "Team Lead" || userRole === "Agent") && (
+                              {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
                                 <button
                                   onClick={(e) => handleAddCollabClick(e, client)}
                                   className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"

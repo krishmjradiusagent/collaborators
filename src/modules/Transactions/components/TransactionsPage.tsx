@@ -1,18 +1,19 @@
 import * as React from "react"
 import { 
-  Plus, 
-  ChevronDown, 
-  Bell, 
-  ArrowUpRight, 
+  Plus,
+  ChevronDown,
+  Bell,
   Search,
   Filter,
   Download,
   Trash2,
+  Info,
+  Clock,
   Home,
   User,
-  Info,
-  Clock
+  ArrowUpRight,
 } from "lucide-react"
+import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
@@ -30,9 +31,12 @@ import { Transaction } from "../types"
 import { AssignCollaboratorModal } from "../../Clients/components/AssignCollaboratorModal"
 import { INITIAL_COLLABORATORS } from "../../TeamSettings/collaborators/mockData"
 import { TransactionDetailSidePanel } from "./TransactionDetailSidePanel"
+import { CreateTransactionWizard } from "./CreateTransactionWizard"
+import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
 
 import { MOCK_CLIENTS } from "../../Clients/mockData"
 import { ClientDetailSidePanel } from "../../Clients/components/ClientDetailSidePanel"
+import { useRole } from "@/contexts/RoleContext"
 
 const mockTransactions: Transaction[] = [
   {
@@ -106,9 +110,6 @@ const mockTransactions: Transaction[] = [
   }
 ];
 
-import { motion } from "framer-motion"
-import { CreateTransactionWizard } from "./CreateTransactionWizard"
-import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
 
 export function TransactionsPage() {
   const [activeTab, setActiveTab] = React.useState("All")
@@ -122,13 +123,24 @@ export function TransactionsPage() {
   const [selectedClient, setSelectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
 
+  const { isCollaborator, selectedTransaction } = useRole()
+
+  const displayedTransactions = React.useMemo(() => {
+    if (isCollaborator && selectedTransaction) {
+      return transactions.filter(t => t.id === selectedTransaction.id)
+    }
+    return transactions
+  }, [transactions, isCollaborator, selectedTransaction])
+
   const handleOpenClientProfile = (tx: Transaction) => {
     const client = MOCK_CLIENTS.find(c => c.name === tx.clientName) || MOCK_CLIENTS[0];
     setSelectedClient(client);
     setIsClientDetailOpen(true);
   };
 
-  const tableTabs = ["All", "Active Listings", "Pending", "Closing Soon", "My Closed (YTD)", "Referrals"]
+  const tableTabs = isCollaborator 
+    ? ["All", "Active Listings", "Pending", "Closing Soon", "My Closed (YTD)"].filter(t => t !== "Referrals") 
+    : ["All", "Active Listings", "Pending", "Closing Soon", "My Closed (YTD)", "Referrals"]
 
   const getClientTypeIcon = (type: Transaction['clientType']) => {
     switch (type) {
@@ -280,7 +292,7 @@ export function TransactionsPage() {
                    </TableRow>
                 </TableHeader>
                 <TableBody>
-                   {transactions.map((tx) => (
+                   {displayedTransactions.map((tx) => (
                       <TableRow 
                         key={tx.id} 
                         className="group h-[50px] border-b border-slate-50 hover:bg-slate-50/50 transition-all cursor-pointer"

@@ -30,6 +30,7 @@ import { Client, Collaborator, ClientAssignment } from '../types';
 import { MOCK_TRANSACTIONS, MOCK_ASSIGNMENTS } from '../mockData';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useRole } from '@/contexts/RoleContext';
 import { AssignCollaboratorModal } from './AssignCollaboratorModal';
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
 import { CollaboratorCard } from './CollaboratorCard';
@@ -51,6 +52,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   initialCollabExpanded = true,
   initialTab = 'Activity'
 }) => {
+  const { isCollaborator, selectedTransaction } = useRole();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -67,14 +69,20 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     }
   }, [isOpen, initialCollabExpanded]);
 
-  const clientTransactions = MOCK_TRANSACTIONS.filter(t => t.clientId === client.id);
+  const clientTransactions = React.useMemo(() => {
+    const txs = MOCK_TRANSACTIONS.filter(t => t.clientId === client.id);
+    if (isCollaborator && selectedTransaction) {
+      return txs.filter(t => t.id === selectedTransaction.id);
+    }
+    return txs;
+  }, [client.id, isCollaborator, selectedTransaction]);
 
   // Derived: Current collaborators for this client
   const assignedCollabs = collaborators.filter(c => 
     assignments.some(a => a.collaboratorId === c.id)
   );
 
-  const handleAssign = (collaboratorId: string, type: 'client' | 'transaction', transactionId?: string) => {
+  const handleAssign = (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => {
     // Union Logic: Client-level access supersedes transaction-level access.
     const isAlreadyAtClient = assignments.some(a => a.collaboratorId === collaboratorId && a.assignmentType === 'client');
     
@@ -96,31 +104,22 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
         ...prev.filter(a => !(a.collaboratorId === collaboratorId && a.assignmentType === 'transaction')), 
         newAssignment
       ]);
-    } else {
+    } else if (transactionIds) {
       if (isAlreadyAtClient) {
         toast.info("Collaborator already has client-wide access (covers all transactions).");
         return;
       }
       
-      const exists = assignments.find(a => 
-        a.collaboratorId === collaboratorId && a.assignmentType === 'transaction' && a.transactionId === transactionId
-      );
-
-      if (exists) {
-        toast.error("Collaborator already assigned here.");
-        return;
-      }
-
-      const newAssignment: ClientAssignment = {
-        id: `a${Date.now()}`,
+      const newAssignments: ClientAssignment[] = transactionIds.map(txId => ({
+        id: `a${Date.now()}-${txId}`,
         clientId: client.id,
         collaboratorId,
         assignmentType: 'transaction',
-        transactionId,
+        transactionId: txId,
         assignedAt: new Date().toISOString()
-      };
+      }));
 
-      setAssignments(prev => [...prev, newAssignment]);
+      setAssignments(prev => [...prev.filter(a => !transactionIds.includes(a.transactionId || '')), ...newAssignments]);
     }
   };
 
@@ -130,14 +129,9 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     setIsAssignModalOpen(true);
   };
 
-  const tabs = [
-    'Activity',
-    'Searches',
-    'Property recommendations',
-    'Transactions',
-    'Notes',
-    'Reminders'
-  ];
+  const tabs = isCollaborator 
+    ? ['Activity', 'Transactions', 'Notes', 'Reminders']
+    : ['Activity', 'Searches', 'Property recommendations', 'Transactions', 'Notes', 'Reminders'];
 
   if (!client) return null;
 
@@ -235,17 +229,20 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
 
               {/* Accordion Sections with Integrated Logic */}
               <div className="w-full space-y-3">
-                <div className="flex items-center justify-between w-full h-[32px]">
-                  <span className="text-[#111827] text-[14px] font-semibold">AI Prospecting</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#5a5ff2] text-[14px] font-medium cursor-pointer hover:underline">Edit</span>
-                    <div className="w-[38px] h-[22px] bg-[#e5e5e5] rounded-full relative cursor-pointer">
-                      <div className="absolute left-[3px] top-[3px] size-4 bg-white rounded-full transition-all" />
+                {!isCollaborator && (
+                  <>
+                    <div className="flex items-center justify-between w-full h-[32px]">
+                      <span className="text-[#111827] text-[14px] font-semibold">AI Prospecting</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#5a5ff2] text-[14px] font-medium cursor-pointer hover:underline">Edit</span>
+                        <div className="w-[38px] h-[22px] bg-[#e5e5e5] rounded-full relative cursor-pointer">
+                          <div className="absolute left-[3px] top-[3px] size-4 bg-white rounded-full transition-all" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <Separator className="bg-[#e5e5e5]" />
+                    <Separator className="bg-[#e5e5e5]" />
+                  </>
+                )}
 
                 <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
                   <span className="text-[#111827] text-[14px] font-semibold">Additional Details</span>
@@ -376,17 +373,18 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
               </div>
             </div>
 
-            {/* AI Shortcuts Bar - following screenshot 1 */}
-            <div className="flex gap-4 mt-6">
-              <Button className="flex-1 bg-[#262626] hover:bg-[#1a1a1a] text-white rounded-[20px] h-[52px] flex items-center justify-center gap-2 group shadow-xl">
-                <Sparkles className="size-5 text-[#a78bfa] group-hover:animate-pulse" />
-                <span className="text-[14px] font-bold">Jarvis, summarize {client.name.split(' ')[0].toLowerCase()}</span>
-              </Button>
-              <Button variant="outline" className="flex-1 bg-[#f0f2f5] border-none hover:bg-[#e4e7eb] rounded-[20px] h-[52px] flex items-center justify-center gap-2 shadow-sm">
-                <Star className="size-5 text-amber-500 fill-amber-500" />
-                <span className="text-[14px] font-bold text-[#171717]">{client.score || "9.5"}/10 | View Last Summary</span>
-              </Button>
-            </div>
+            {!isCollaborator && (
+              <div className="flex gap-4 mt-6">
+                <Button className="flex-1 bg-[#262626] hover:bg-[#1a1a1a] text-white rounded-[20px] h-[52px] flex items-center justify-center gap-2 group shadow-xl">
+                  <Sparkles className="size-5 text-[#a78bfa] group-hover:animate-pulse" />
+                  <span className="text-[14px] font-bold">Jarvis, summarize {client.name.split(' ')[0].toLowerCase()}</span>
+                </Button>
+                <Button variant="outline" className="flex-1 bg-[#f0f2f5] border-none hover:bg-[#e4e7eb] rounded-[20px] h-[52px] flex items-center justify-center gap-2 shadow-sm">
+                  <Star className="size-5 text-amber-500 fill-amber-500" />
+                  <span className="text-[14px] font-bold text-[#171717]">{client.score || "9.5"}/10 | View Last Summary</span>
+                </Button>
+              </div>
+            )}
 
             {/* Tabs Section */}
             <div className="mt-8">
