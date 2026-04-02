@@ -15,6 +15,13 @@ import {
   Star,
   ArrowLeft
 } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/DropdownMenu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -463,16 +470,6 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[#737373] text-[12px] font-bold tracking-widest uppercase">ACTIVE TRANSACTIONS</h3>
-                  <div className="flex items-center gap-2">
-                     <Button 
-                       variant="outline" 
-                       size="sm"
-                       className="rounded-full border-[#5A5FF2] text-[#5A5FF2] font-bold h-8 flex items-center gap-1.5 px-3"
-                       onClick={() => openAssignModal('transaction')}
-                     >
-                       <Plus className="size-3.5" /> Assign Selected
-                     </Button>
-                  </div>
                 </div>
 
                 <div className="space-y-4">
@@ -494,9 +491,27 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                                 <span className="text-[#15803D] text-[10px] font-black uppercase tracking-widest">New Offer</span>
                                 <ChevronDown className="size-3 text-[#15803D]" />
                              </div>
-                             <button className="p-1 text-slate-300 hover:text-slate-600 transition-colors">
-                                <MoreVertical className="size-5" />
-                             </button>
+                             
+                             <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="p-1 text-slate-300 hover:text-slate-600 transition-colors outline-none">
+                                     <MoreVertical className="size-5" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-2 border-slate-100 shadow-xl bg-white z-[301]">
+                                  <DropdownMenuItem 
+                                    className="rounded-[10px] py-2.5 font-bold text-[#374151] flex items-center gap-2 cursor-pointer focus:bg-[#F5F3FF] focus:text-[#5A5FF2]"
+                                    onClick={() => openAssignModal('transaction', tx.id)}
+                                  >
+                                    <Plus className="size-4" />
+                                    Collaborator
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-slate-50 my-1" />
+                                  <DropdownMenuItem className="rounded-[10px] py-2.5 font-medium text-slate-500 cursor-pointer">
+                                    View Details
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                             </DropdownMenu>
                           </div>
                         </div>
 

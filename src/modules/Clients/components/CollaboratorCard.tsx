@@ -100,7 +100,7 @@ export function CollaboratorCard({
                     </Badge>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-4 rounded-2xl shadow-2xl border-slate-100 bg-white z-[100]">
+                <PopoverContent className="w-56 p-4 rounded-2xl shadow-2xl border-slate-100 bg-white z-[301]">
                   <div className="flex flex-col gap-3">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">PERMISSIONS</span>
                     <div className="grid grid-cols-1 gap-2">
@@ -129,7 +129,7 @@ export function CollaboratorCard({
                     </span>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-4 rounded-2xl shadow-2xl border-slate-100 bg-white z-[100]">
+                <PopoverContent className="w-56 p-4 rounded-2xl shadow-2xl border-slate-100 bg-white z-[301]">
                   <div className="flex flex-col gap-3">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">TRANSACTION SCOPE</span>
                     <div className="text-[12px] font-bold text-slate-600 leading-relaxed">
@@ -149,7 +149,7 @@ export function CollaboratorCard({
                 <MoreHorizontal className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-white border-slate-100 shadow-3xl p-2 rounded-2xl z-[100]">
+            <DropdownMenuContent align="end" className="w-56 bg-white border-slate-100 shadow-3xl p-2 rounded-2xl z-[301]">
               <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]" onClick={() => onViewProfile?.()}>
                 <UserCheck className="h-4 w-4" /> View Profile
               </DropdownMenuItem>
