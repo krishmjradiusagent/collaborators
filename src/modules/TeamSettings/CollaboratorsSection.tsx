@@ -38,8 +38,7 @@ export function CollaboratorsSection() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Collaborator | null>(null);
 
-  // Mocked permission check based on user requirements
-  // Restricted to: Team Lead, Co-Team Lead, Operations, Admin
+  // Restricted to: Team Lead, Co-Team Lead, Operations, and Admin roles.
   const userRole = "Team Lead"; // This would come from a real auth/user context
   const hasAccess = ["Team Lead", "Co-Team Lead", "Operations", "Admin"].includes(userRole);
 
@@ -50,7 +49,9 @@ export function CollaboratorsSection() {
           <Plus className="h-6 w-6 text-slate-300" />
         </div>
         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Access Restricted</h3>
-        <p className="text-[13px] text-slate-500 max-w-xs mx-auto">Only Team Leads, Admins, and Operations roles can manage collaborators.</p>
+        <p className="text-[13px] text-slate-500 max-w-xs mx-auto">
+          Only Team Leads, Co-Team Leads, Operations, and Admins can manage collaborators.
+        </p>
       </div>
     );
   }

@@ -112,25 +112,50 @@ export function InviteCollaboratorModal({
   const selectedType = form.watch("type");
 
   const onSubmit = async (data: FormValues) => {
-    if (existingEmails.includes(data.email.toLowerCase())) {
-      form.setError("email", { message: `This person is already a ${data.type.toUpperCase()} on your team` });
+    // A. Backend Constraint Check: Skip if email exists in global team pool
+    if (existingEmails.map(e => e.toLowerCase()).includes(data.email.toLowerCase())) {
+      form.setError("email", { 
+        message: "This email is already associated with a collaborator on your team." 
+      });
+      toast.error("Duplicate Entry", {
+        description: `${data.email} is already in your collaborator list.`
+      });
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 800));
     
-    setIsSubmitting(false);
-    onInviteSent(data);
-    toast.success(`Invite sent to ${data.firstName}`, {
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-    });
-    
-    // Reset and close
-    setStep(1);
-    form.reset();
-    onOpenChange(false);
+    // B. Execution Logic: "Send Secure Invitation"
+    // In a real implementation, this would call a secure cloud function or API endpoint
+    // to create the record and trigger the SendGrid/Postmark notification.
+    try {
+      // Simulate Backend Record Creation Sequence:
+      // 1. Map: First Name, Last Name, Business Email
+      // 2. Implicit: Set status to "Invited", Expiration to 7 days
+      // 3. Metadata: Capture team_id and current_user_id
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+      
+      // Success Transition
+      onInviteSent(data);
+      
+      // UI Feedback: Shadcn Sonner Notification
+      toast.success("Invitation successful", {
+        description: `Link sent to ${data.email}. Access expires in 7 days.`,
+        icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
+        className: "bg-white border-emerald-100",
+      });
+      
+      // 3. UI State Transition
+      setStep(1);
+      form.reset();
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Invitation failed", {
+        description: "There was an error processing the request. Please try again."
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleNext = () => {
@@ -336,7 +361,7 @@ export function InviteCollaboratorModal({
                   <Button
                     type="submit"
                     className="flex-1 h-14 bg-[#5A5FF2] hover:bg-[#5A5FF2]/90 text-white font-bold rounded-[30px] shadow-xl shadow-[#5A5FF2]/20 transition-all active:scale-95"
-                    disabled={isSubmitting || !form.getValues("email")}
+                    disabled={isSubmitting || !form.watch("email")}
                   >
                     {isSubmitting ? (
                       <>

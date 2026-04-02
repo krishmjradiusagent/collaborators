@@ -85,8 +85,8 @@ export function CollaboratorRow({
           </div>
         </TableCell>
 
-        <TableCell className="text-right pr-8">
-          <div className="flex flex-row items-center justify-end gap-4 h-full">
+        <TableCell className="text-right pr-12">
+          <div className="flex flex-col items-end gap-1.5 h-full">
             <Badge 
               variant="secondary" 
               className={cn(
