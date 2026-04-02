@@ -25,6 +25,8 @@ const badgeVariants = cva(
            "border-purple-100 bg-purple-50 text-purple-700 hover:bg-purple-100/80",
         rose:
            "border-rose-100 bg-rose-50 text-rose-700 hover:bg-rose-100/80",
+        brand:
+           "border-[#5A5FF2]/10 bg-[#5A5FF2]/5 text-[#5A5FF2] hover:bg-[#5A5FF2]/10",
         slate:
            "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100/80",
       },

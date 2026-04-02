@@ -312,7 +312,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
                                 {assignedCollabs[0].name.split(' ')[0]}
                               </span>
-                              <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px] border-none" />
+                              <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
                             {(userRole === "Team Lead" || userRole === "Agent") && (
                               <button
@@ -332,14 +332,14 @@ export function ClientListPage({ }: ClientListPageProps) {
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
                                 {assignedCollabs[1].name.split(' ')[0]}
                               </span>
-                              <TypeBadge type={assignedCollabs[1].type} className="h-[14px] px-1 text-[7px] border-none" />
+                              <TypeBadge type={assignedCollabs[1].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
                             <div className="flex items-center gap-2 h-[18px]">
                               <div className="flex items-center gap-1.5 overflow-hidden">
                                 <span className="text-[13px] font-black text-[#373758] truncate leading-none">
                                   {assignedCollabs[0].name.split(' ')[0]}
                                 </span>
-                                <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px] border-none" />
+                                <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                               </div>
                               {(userRole === "Team Lead" || userRole === "Agent") && (
                                 <button
@@ -360,7 +360,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
                                 {assignedCollabs[assignedCollabs.length - 1].name.split(' ')[0]}
                               </span>
-                              <TypeBadge type={assignedCollabs[assignedCollabs.length - 1].type} className="h-[14px] px-1 text-[7px] border-none" />
+                              <TypeBadge type={assignedCollabs[assignedCollabs.length - 1].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
                             <div className="flex items-center gap-2 h-[18px]">
                               <button

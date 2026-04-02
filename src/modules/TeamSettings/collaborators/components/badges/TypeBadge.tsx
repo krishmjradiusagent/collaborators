@@ -10,7 +10,7 @@ interface TypeBadgeProps {
 const TYPE_CONFIG = {
   tc: {
     label: "T.C.",
-    variant: "indigo" as const,
+    variant: "brand" as const,
   },
   lender: {
     label: "Lender",
