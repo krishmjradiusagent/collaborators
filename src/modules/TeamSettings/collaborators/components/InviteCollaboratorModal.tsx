@@ -176,7 +176,10 @@ export function InviteCollaboratorModal({
       }
       onOpenChange(val);
     }}>
-      <DialogContent className="sm:max-w-[550px] bg-white border-none text-slate-900 p-0 overflow-hidden shadow-2xl rounded-[40px]">
+      <DialogContent 
+        className="sm:max-w-[550px] bg-white border-none text-slate-900 p-0 overflow-hidden shadow-2xl rounded-[40px] z-[9999]" 
+        overlayClassName="z-[9999]"
+      >
         <div className="p-12">
           <DialogHeader className="mb-10 text-left">
             <div className="mb-6 flex">

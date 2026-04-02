@@ -26,7 +26,8 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
   ]
 
   const sidebarItems = [
-    { icon: Users, label: "Team", active: true },
+    { icon: Users, label: "Team" },
+    { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
     { icon: Bell, label: "Security" },
     { icon: Settings, label: "Settings" },
@@ -100,12 +101,16 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
           {sidebarItems.map((item, i) => (
             <button
               key={i}
+              onClick={() => setActiveTab?.(item.label)}
               className={cn(
-                "p-[10px] rounded-[4px] transition-all duration-200 size-[36px] flex items-center justify-center",
-                item.active ? "bg-[#EEF2FF] text-blue-600" : "text-[#4F7396] hover:bg-gray-50 hover:text-gray-900"
+                "p-[10px] rounded-[12px] transition-all duration-300 size-[44px] flex items-center justify-center relative group",
+                activeTab === item.label ? "bg-[#EEF2FF] text-[#5A5FF2] shadow-[0_4px_12px_rgba(90,95,242,0.15)] ring-1 ring-[#5A5FF2]/20" : "text-[#4F7396] hover:bg-slate-50 hover:text-slate-900"
               )}
             >
-              <item.icon className="h-[20px] w-[20px]" />
+              <item.icon className={cn("h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110", activeTab === item.label ? "fill-[#5A5FF2]/10" : "")} />
+              {activeTab === item.label && (
+                <div className="absolute left-0 w-1 h-6 bg-[#5A5FF2] rounded-r-full -ml-[1px]" />
+              )}
             </button>
           ))}
         </aside>
@@ -113,26 +118,30 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
         {/* Main Content Area - Total Screen Width, Flush with Sidebar */}
         <main className="flex-1 ml-[72px] bg-white min-h-[calc(100vh-70px)] pb-32">
           {/* Content Wrapper - Full width */}
-          <div className="pt-8 px-8 w-full border-t border-transparent">
-             <h1 className="text-[24px] font-semibold text-[#373758] tracking-[-0.48px] mb-8">Settings</h1>
-             
-             {/* Tabs - Spanning full available width */}
-             <nav className="flex items-center border-b border-[#EFEFEF] w-full mb-6">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTab?.(tab)}
-                    className={cn(
-                      "px-4 py-2 h-[40px] text-[14px] font-semibold transition-all relative whitespace-nowrap flex items-center justify-center",
-                      tab === activeTab
-                        ? "text-primary border-b-2 border-primary"
-                        : "text-[#373758] hover:text-primary"
-                    )}
-                  >
-                    {tab}
-                  </button>
-                ))}
-             </nav>
+          <div className={cn("pt-8 w-full border-t border-transparent", activeTab === "Clients" ? "px-0" : "px-8")}>
+             {activeTab !== "Clients" && (
+                <>
+                  <h1 className="text-[24px] font-semibold text-[#373758] tracking-[-0.48px] mb-8">{activeTab === "Team" ? "Team settings" : activeTab}</h1>
+                  
+                  {/* Tabs - Only for Team settings / General settings */}
+                  <nav className="flex items-center border-b border-[#EFEFEF] w-full mb-6">
+                      {tabs.map((tab) => (
+                        <button
+                          key={tab}
+                          onClick={() => setActiveTab?.(tab)}
+                          className={cn(
+                            "px-4 py-2 h-[40px] text-[14px] font-semibold transition-all relative whitespace-nowrap flex items-center justify-center",
+                            tab === activeTab || (activeTab === "Team" && tab === "Team settings")
+                              ? "text-primary border-b-2 border-primary"
+                              : "text-[#373758] hover:text-primary"
+                          )}
+                        >
+                          {tab}
+                        </button>
+                      ))}
+                  </nav>
+                </>
+             )}
 
              {/* Inner Content - No extra horizontal margins */}
              <div className="w-full">
