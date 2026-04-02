@@ -106,6 +106,8 @@ const mockTransactions: Transaction[] = [
   }
 ];
 
+import { motion } from "framer-motion"
+
 export function TransactionsPage() {
   const [activeTab, setActiveTab] = React.useState("All")
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
@@ -152,15 +154,17 @@ export function TransactionsPage() {
       <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-[#EFEFEF]">
         <h1 className="text-[28px] font-bold text-[#111827]">My Transactions</h1>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
-            <Plus className="size-4" /> Buyer/Tenant <ChevronDown className="size-4 opacity-50" />
-          </Button>
-          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
-            <Plus className="size-4" /> Seller/Landlord <ChevronDown className="size-4 opacity-50" />
-          </Button>
-          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
-            <Plus className="size-4" /> Referral <ChevronDown className="size-4 opacity-50" />
-          </Button>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <Button 
+              className="h-10 rounded-full bg-[#5A5FF2] border-[#5A5FF2] text-white hover:bg-[#4d52e0] hover:shadow-lg hover:shadow-[#5A5FF2]/30 transition-all shadow-md shadow-[#5A5FF2]/20 font-bold px-6 border-none"
+            >
+              <Plus className="size-4 stroke-[3px]" /> Transaction
+            </Button>
+          </motion.div>
           <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:bg-slate-50 relative">
             <Bell className="size-5" />
             <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white" />
