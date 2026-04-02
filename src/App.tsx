@@ -4,6 +4,7 @@ import { TeamSettingsContent } from "./modules/TeamSettings/TeamSettingsContent"
 import { ClientListPage } from "./modules/Clients/components/ClientListPage"
 import { ClientProfilePage } from "./modules/Clients/components/ClientProfilePage"
 import { Client } from "./modules/Clients/types"
+import { TransactionsPage } from "./modules/Transactions/components/TransactionsPage"
 
 function App() {
   const [activeTab, setActiveTab] = React.useState("Team settings")
@@ -35,6 +36,8 @@ function App() {
     switch (activeTab) {
       case "Clients":
         return <ClientListPage />
+      case "Documents":
+        return <TransactionsPage />
       case "Team settings":
       case "Team":
         return <TeamSettingsContent />

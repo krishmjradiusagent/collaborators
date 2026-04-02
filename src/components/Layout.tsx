@@ -136,7 +136,7 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
         <main className="flex-1 ml-[72px] bg-white min-h-[calc(100vh-70px)] pb-32">
           {/* Content Wrapper - Full width */}
           <div className={cn("pt-8 w-full border-t border-transparent", activeTab === "Clients" ? "px-0" : "px-8")}>
-             {activeTab !== "Clients" && (
+             {activeTab !== "Clients" && activeTab !== "Documents" && (
                 <>
                   <h1 className="text-[24px] font-semibold text-[#373758] tracking-[-0.48px] mb-8">{activeTab === "Team" ? "Team settings" : activeTab}</h1>
                   
