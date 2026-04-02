@@ -7,21 +7,16 @@ import {
   Search,
   Filter,
   Download,
-  Mail,
   Trash2,
-  MoreHorizontal,
   Home,
   User,
-  Users
+  Info,
+  Clock
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/Input"
 import { Badge } from "@/components/ui/Badge"
-import { 
-  Avatar, 
-  AvatarFallback 
-} from "@/components/ui/Avatar"
 import {
   Table,
   TableBody,
@@ -36,76 +31,96 @@ import { AssignCollaboratorModal } from "../../Clients/components/AssignCollabor
 import { INITIAL_COLLABORATORS } from "../../TeamSettings/collaborators/mockData"
 import { TransactionDetailSidePanel } from "./TransactionDetailSidePanel"
 
-const stats = [
-  { label: "Active Listings", value: "100", color: "bg-[#EEF2FF] text-[#5A5FF2] border-[#5A5FF2]/20" },
-  { label: "Pending Transactions", value: "5", color: "bg-[#F0FDF4] text-[#10B981] border-[#10B981]/20" },
-  { label: "Closed Transactions(YTD)", value: "20", color: "bg-[#FEF2F2] text-[#EF4444] border-[#EF4444]/20" },
-  { label: "Earnings (YTD)", value: "$100,000", color: "bg-[#F0F9FF] text-[#0EA5E9] border-[#0EA5E9]/20" },
-]
+import { MOCK_CLIENTS } from "../../Clients/mockData"
+import { ClientDetailSidePanel } from "../../Clients/components/ClientDetailSidePanel"
 
-const signingQueue = [
-  { id: 1, address: "500 Pearl St, California", document: "Contract for Unit 4B", name: "Jane Doe", date: "Sent on 05 Jan, 2:15 PM" },
-  { id: 2, address: "500 Pearl St, California", document: "Contract for Unit 4B", name: "Jane Doe", date: "Sent on 05 Jan, 2:15 PM" },
-  { id: 3, address: "500 Pearl St, California", document: "Contract for Unit 4B", name: "Jane Doe", date: "Sent on 05 Jan, 2:15 PM" },
-  { id: 4, address: "500 Pearl St, California", document: "Contract for Unit 4B", name: "Jane Doe", date: "Sent on 05 Jan, 2:15 PM" },
-]
-
-const MOCK_TRANSACTIONS: Transaction[] = [
+const mockTransactions: Transaction[] = [
   {
     id: "tx-1",
-    address: "123 Elm St, Austin, TX",
+    address: "123 Elm St, Austin, 2nd street",
+    addressLine2: "San Francisco, CA",
     clientType: "Buyer",
     clientName: "Jessica Taylor",
     subClientName: "Sophia Brown",
     purchasePrice: 400000,
-    status: "Under Contract",
+    status: "Pending signature",
     agentName: "Jessica Taylor",
     acceptanceDate: "April 6, 2024",
     lastUpdated: "April 6, 2024\n12:26 AM",
-    closeOfEscrow: "April 30, 2024",
+    closeOfEscrow: "April 6, 2024",
     collaborators: [
-      { id: "c-1", name: "Sarah Miller", role: "T.C." },
-      { id: "c-2", name: "Robert Fox", role: "Lender" }
+      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" },
+      { id: "c-2", name: "Robert Fox", role: "Lender", status: "active" },
+      { id: "c-3", name: "Jessica Taylor", role: "Co-Agent", status: "invited", invitationExpiry: "EXP 7D" }
     ]
   },
   {
     id: "tx-2",
-    address: "654 Cedar St, Seattle, WA",
+    address: "654 Cedar St, Seattle, West End",
+    addressLine2: "Denver, CO",
     clientType: "Seller",
     clientName: "Sophia Brown",
     subClientName: "Sophia Brown",
     purchasePrice: 400000,
-    status: "Active Listing",
+    status: "Pending signature",
     agentName: "Jessica Taylor",
-    acceptanceDate: "May 10, 2024",
+    acceptanceDate: "-",
     lastUpdated: "April 6, 2024\n12:26 AM",
-    closeOfEscrow: "June 15, 2024",
+    closeOfEscrow: "-",
     collaborators: [
-      { id: "c-1", name: "Sarah Miller", role: "T.C." }
+      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" },
+      { id: "c-4", name: "Emily Davis", role: "Assistant", status: "active" }
     ]
   },
   {
     id: "tx-3",
-    address: "456 Maple Ave, Los Angeles, CA",
+    address: "456 Maple Ave, 5th avenue",
+    addressLine2: "Los Angeles, CA",
     clientType: "Landlord",
     clientName: "Emily Davis",
     subClientName: "Sophia Brown",
     purchasePrice: 400000,
-    status: "Negotiation",
+    status: "Pending signature",
     agentName: "Jessica Taylor",
-    acceptanceDate: "June 1, 2024",
+    acceptanceDate: "-",
     lastUpdated: "April 6, 2024\n12:26 AM",
-    closeOfEscrow: "July 1, 2024",
+    closeOfEscrow: "-",
     collaborators: []
   },
-]
+  {
+    id: "tx-4",
+    address: "987 Birch Ln, Ocean view",
+    addressLine2: "Phoenix, AZ",
+    clientType: "Tenant",
+    clientName: "Michael Johnson",
+    subClientName: "Sophia Brown",
+    purchasePrice: 400000,
+    status: "Pending signature",
+    agentName: "Jessica Taylor",
+    acceptanceDate: "April 7, 2024",
+    lastUpdated: "April 6, 2024\n12:26 AM",
+    closeOfEscrow: "April 7, 2024",
+    collaborators: [
+      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" }
+    ]
+  }
+];
 
 export function TransactionsPage() {
-  const [activeTableTab, setActiveTableTab] = React.useState("All")
+  const [activeTab, setActiveTab] = React.useState("All")
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
   const [isSidePanelOpen, setIsSidePanelOpen] = React.useState(false)
+  const [isClientDetailOpen, setIsClientDetailOpen] = React.useState(false)
   const [selectedTxId, setSelectedTxId] = React.useState<string | undefined>()
   const [selectedTx, setSelectedTx] = React.useState<Transaction | undefined>()
+  const [selectedClient, setSelectedClient] = React.useState<any>(null)
+  const [transactions, setTransactions] = React.useState(mockTransactions)
+
+  const handleOpenClientProfile = (tx: Transaction) => {
+    const client = MOCK_CLIENTS.find(c => c.name === tx.clientName) || MOCK_CLIENTS[0];
+    setSelectedClient(client);
+    setIsClientDetailOpen(true);
+  };
 
   const tableTabs = ["All", "Active Listings", "Pending", "Closing Soon", "My Closed (YTD)", "Referrals"]
 
@@ -120,229 +135,241 @@ export function TransactionsPage() {
     }
   }
 
-  const getClientTypeColor = (type: Transaction['clientType']) => {
+  const getClientTypeStyles = (type: Transaction['clientType']) => {
     switch (type) {
-      case 'Buyer': return "bg-blue-50 text-blue-600 border-blue-100";
-      case 'Seller': return "bg-emerald-50 text-emerald-600 border-emerald-100";
-      case 'Landlord': return "bg-orange-50 text-orange-600 border-orange-100";
-      case 'Tenant': return "bg-purple-50 text-purple-600 border-purple-100";
-      case 'Referral': return "bg-rose-50 text-rose-600 border-rose-100";
+      case 'Buyer': return "bg-[#eff8fe] text-[#0c4a6e] border-[#0c4a6e]/10";
+      case 'Seller': return "bg-[#f0fdf4] text-[#134e4a] border-[#134e4a]/10";
+      case 'Landlord': return "bg-[#f0fdfa] text-[#365314] border-[#365314]/10";
+      case 'Tenant': return "bg-[#f5f3ff] text-[#4c1d95] border-[#4c1d95]/10";
+      case 'Referral': return "bg-[#ffe4e6] text-[#881337] border-[#881337]/10";
       default: return "";
     }
   }
 
   return (
-    <div className="flex flex-col flex-1 w-full relative h-[calc(100vh-64px)] overflow-hidden">
+    <div className="flex flex-col flex-1 w-full bg-white relative h-[calc(100vh-64px)] overflow-hidden font-sans">
       {/* View Header */}
-      <div className="flex items-center justify-between px-8 py-6 bg-white border-b border-[#EFEFEF]">
+      <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-[#EFEFEF]">
         <h1 className="text-[28px] font-bold text-[#111827]">My Transactions</h1>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 rounded-[24px] border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] hover:border-[#5A5FF2]/20 font-bold transition-all shadow-sm">
+          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
             <Plus className="size-4" /> Buyer/Tenant <ChevronDown className="size-4 opacity-50" />
           </Button>
-          <Button variant="outline" className="h-10 rounded-[24px] border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] hover:border-[#5A5FF2]/20 font-bold transition-all shadow-sm">
+          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
             <Plus className="size-4" /> Seller/Landlord <ChevronDown className="size-4 opacity-50" />
           </Button>
-          <Button variant="outline" className="h-10 rounded-[24px] border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] hover:border-[#5A5FF2]/20 font-bold transition-all shadow-sm">
+          <Button variant="outline" className="h-10 rounded-full border-[#EFEFEF] bg-white gap-2 text-[#5A5FF2] hover:bg-[#EEF2FF] font-bold transition-all shadow-sm">
             <Plus className="size-4" /> Referral <ChevronDown className="size-4 opacity-50" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:bg-slate-50 transition-all rounded-full relative">
+          <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:bg-slate-50 relative">
             <Bell className="size-5" />
-            <span className="absolute top-2.5 right-2.5 size-2.5 bg-red-500 rounded-full border-2 border-white" />
+            <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white" />
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 w-full bg-[#f8fbff]/30 p-8 pt-6 space-y-10 overflow-y-auto custom-scrollbar">
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-5 gap-6">
-           <div className="col-span-4 grid grid-cols-4 gap-4">
-              {stats.map((stat, i) => (
-                <div key={i} className={cn("p-6 rounded-[28px] border border-transparent shadow-sm flex flex-col justify-between h-[140px] transition-all hover:scale-[1.02] cursor-pointer", stat.color)}>
-                  <span className="text-[12px] font-bold tracking-widest opacity-80 uppercase">{stat.label}</span>
-                  <span className="text-[34px] font-black tracking-tight leading-none">{stat.value}</span>
-                </div>
-              ))}
+      <div className="flex-1 w-full overflow-y-auto no-scrollbar pb-10">
+        {/* Statistics & Signing Queue (already implemented, keeping but ensuring parity) */}
+        <div className="p-8 pb-4 space-y-6">
+           <div className="flex items-center gap-2 mb-4">
+              <Badge className="bg-[#5A5FF2] text-white px-4 py-1.5 rounded-full font-bold">My Overview</Badge>
+              <Badge variant="slate" className="text-slate-400 px-4 py-1.5 rounded-full font-bold hover:bg-slate-50 cursor-pointer transition-all">Team's Overview</Badge>
            </div>
-           {/* Progress Card */}
-           <div className="p-6 rounded-[28px] bg-white border border-slate-100 shadow-[0px_4px_24px_rgba(0,0,0,0.04)] flex flex-col justify-between h-[140px]">
-              <div className="flex justify-between items-start">
-                 <div className="space-y-0.5">
-                    <p className="text-[12px] font-bold text-slate-500 uppercase tracking-widest">My Progress to Cap</p>
-                    <p className="text-[18px] font-black text-[#171717]">$250/$25,000</p>
-                 </div>
+           
+           <div className="grid grid-cols-5 gap-4 h-[120px]">
+              <div className="col-span-4 grid grid-cols-4 gap-4">
+                 {[
+                   { label: "Active Listings", value: "100", color: "text-[#5A5FF2]", bg: "bg-[#EEF2FF]/50", border: "border-[#5A5FF2]/20" },
+                   { label: "Pending Transactions", value: "5", color: "text-[#10B981]", bg: "bg-[#F0FDF4]/50", border: "border-[#10B981]/20" },
+                   { label: "Closed Transactions(YTD)", value: "20", color: "text-[#EF4444]", bg: "bg-[#FEF2F2]/50", border: "border-[#EF4444]/20" },
+                   { label: "Earnings (YTD)", value: "$100,000", color: "text-[#0EA5E9]", bg: "bg-[#F0F9FF]/50", border: "border-[#0EA5E9]/20" },
+                 ].map((stat, i) => (
+                   <div key={i} className={cn("p-5 rounded-[24px] border flex flex-col justify-between transition-all hover:scale-[1.02]", stat.bg, stat.border)}>
+                     <span className={cn("text-[11px] font-bold uppercase tracking-wider", stat.color)}>{stat.label}</span>
+                     <span className={cn("text-[28px] font-black tracking-tight", stat.color)}>{stat.value}</span>
+                   </div>
+                 ))}
               </div>
-              <div className="w-full space-y-2">
-                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-amber-400 rounded-full shadow-[0px_0px_10px_rgba(251,191,36,0.3)]" style={{ width: '30%' }} />
+              <div className="p-5 rounded-[24px] bg-white border border-slate-100 shadow-sm flex flex-col justify-between">
+                 <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">My Progress to Cap</p>
+                 <div className="space-y-1">
+                    <p className="text-[16px] font-black text-[#111827]">$250/$25,000</p>
+                    <div className="w-full h-1.5 bg-slate-100 rounded-full">
+                       <div className="h-full bg-amber-400 rounded-full" style={{ width: '30%' }} />
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 text-right">30% achieved</p>
                  </div>
-                 <p className="text-[10px] font-black text-slate-400 text-right uppercase tracking-[0.2em]">30% achieved</p>
               </div>
            </div>
         </div>
 
-        {/* Signing Queue Section */}
-        <div className="space-y-4">
-           <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-3">
-                 <h2 className="text-[18px] font-black text-[#373758] uppercase tracking-[0.2em]">Signing Queue</h2>
-                 <div className="size-6 rounded-full bg-indigo-50 flex items-center justify-center text-[10px] font-black text-[#5A5FF2] ring-1 ring-[#5055ff]/10">4</div>
-              </div>
-              <Button variant="ghost" className="text-[12px] font-bold text-[#5A5FF2] p-0 h-auto hover:bg-transparent uppercase tracking-wider">View All Items</Button>
-           </div>
-           <div className="grid gap-3">
-              {signingQueue.map((item) => (
-                <div key={item.id} className="group flex items-center justify-between p-5 bg-white rounded-[32px] border border-slate-100 shadow-[0px_2px_12px_rgba(0,0,0,0.01)] hover:shadow-[0px_12px_40px_rgba(90,95,242,0.08)] hover:border-indigo-100 transition-all cursor-pointer">
-                  <div className="flex items-center gap-5">
-                    <div className="size-14 rounded-[22px] bg-indigo-50/50 flex items-center justify-center text-indigo-600 transition-all group-hover:bg-indigo-100 group-hover:scale-105">
-                      <Mail className="size-7" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[16px] font-bold text-[#111827] leading-none transition-colors group-hover:text-[#5A5FF2]">{item.address} - <span className="font-medium text-slate-500">{item.document}</span></p>
-                      <div className="flex items-center gap-2.5 text-[12px] mt-2">
-                         <span className="font-black text-[#5A5FF2] uppercase tracking-[0.1em]">{item.name}</span>
-                         <span className="size-1 bg-slate-300 rounded-full" />
-                         <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">{item.date}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="outline" className="rounded-full border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white font-black uppercase text-[12px] tracking-[0.1em] h-11 px-8 gap-2.5 transition-all shadow-sm">
-                    Sign Now <ArrowUpRight className="size-4" />
-                  </Button>
-                </div>
+        {/* Filters and Table Section */}
+        <div className="mt-6 px-8 flex flex-col">
+           {/* Tab Bar - Exact Figma Style */}
+           <div className="flex border border-[#c7d2fe] rounded-[24px] p-1 bg-white mb-6 w-fit">
+              {tableTabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "px-6 py-2 rounded-full text-[13px] font-bold transition-all relative flex items-center gap-2",
+                    activeTab === tab 
+                      ? "bg-[#5A5FF2] text-white shadow-md shadow-[#5A5FF2]/20" 
+                      : "text-slate-500 hover:bg-slate-50"
+                  )}
+                >
+                  {tab}
+                  {tab === "Closing Soon" && <Info className="size-3.5 opacity-60" />}
+                </button>
               ))}
            </div>
-        </div>
 
-        {/* Filters & Table Section */}
-        <div className="bg-white rounded-[40px] shadow-[0px_40px_80px_rgba(90,95,242,0.06)] border border-slate-100 overflow-hidden flex flex-col pb-12">
-           {/* Table Tabs */}
-           <div className="flex items-center p-8 pb-4 overflow-x-auto gap-4">
-              <div className="flex items-center gap-2 p-2 bg-[#f8fbff] rounded-[24px] border border-slate-100">
-                {tableTabs.map((tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setActiveTableTab(tab)}
-                    className={cn(
-                      "px-8 py-3 text-[13px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap",
-                      activeTableTab === tab ? "bg-white text-[#5A5FF2] shadow-[0_8px_20px_rgba(90,95,242,0.15)] ring-1 ring-slate-100" : "text-slate-400 hover:text-slate-600 hover:bg-white/50"
-                    )}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-           </div>
-
-           {/* Table Filters */}
-           <div className="px-8 py-6 flex items-center justify-between gap-8 border-b border-slate-50">
-              <div className="flex-1 max-w-xl relative group">
-                <Search className="absolute left-5 top-1/2 -translate-y-1/2 size-5 text-slate-300 group-focus-within:text-[#5A5FF2] transition-colors" />
+           {/* Filter Bar */}
+           <div className="flex items-center gap-4 mb-6">
+              <div className="flex-1 relative max-w-[400px]">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
                 <Input 
-                  placeholder="Filter by Property, Client or Collaborator..." 
-                  className="pl-13 h-14 bg-slate-50/50 border-none rounded-[20px] text-[15px] font-medium placeholder:text-slate-300 focus:ring-4 focus:ring-indigo-50/50 transition-all shadow-inner"
+                  placeholder="Search by address or client name" 
+                  className="pl-11 h-10 bg-[#f3f4f6]/50 border-none rounded-full text-[14px]"
                 />
               </div>
-              <div className="flex items-center gap-4">
-                 <Button variant="outline" className="h-14 rounded-[20px] bg-white border-slate-100 px-7 gap-3 text-slate-600 hover:bg-slate-50 font-bold text-[14px] transition-all shadow-sm">
-                    Client Type <ChevronDown className="size-4 opacity-50" />
-                 </Button>
-                 <Button variant="outline" className="h-14 rounded-[20px] bg-white border-slate-100 px-7 gap-3 text-slate-600 hover:bg-slate-50 font-bold text-[14px] transition-all shadow-sm">
-                    Status <ChevronDown className="size-4 opacity-50" />
-                 </Button>
-                 <div className="w-px h-10 bg-slate-100 mx-2" />
-                 <Button variant="outline" className="size-14 rounded-[20px] bg-white border-slate-100 flex items-center justify-center p-0 text-slate-600 hover:bg-slate-50 transition-all shadow-sm">
-                    <Filter className="size-5" />
-                 </Button>
-                 <Button variant="outline" className="h-14 rounded-[20px] border-[#5A5FF2]/20 px-8 gap-3 text-[#5A5FF2] hover:bg-indigo-50 font-black uppercase text-[13px] tracking-widest shadow-sm transition-all bg-white">
-                    <Download className="size-5" /> Export
-                 </Button>
-              </div>
+              
+              <Button variant="outline" className="h-10 rounded-full bg-[#f3f4f6]/50 border-none px-5 gap-2 text-[#374151] font-medium text-[14px]">
+                 Client Type: All <ChevronDown className="size-4" />
+              </Button>
+              
+              <Button variant="outline" className="h-10 rounded-full bg-[#f3f4f6]/50 border-none px-5 gap-2 text-[#374151] font-medium text-[14px]">
+                 Status <ChevronDown className="size-4" />
+              </Button>
+
+              <Button variant="ghost" size="icon" className="h-10 w-10 bg-[#eef2ff] text-[#5A5FF2] rounded-full hover:bg-[#e0e7ff] transition-all">
+                <Filter className="size-4" />
+              </Button>
+
+              <Button variant="outline" className="h-10 rounded-full bg-[#eef2ff] border-[#e0e7ff] px-6 gap-2 text-[#5A5FF2] font-semibold text-[13px] shadow-sm">
+                <Download className="size-4" /> Export
+              </Button>
+
+              <button className="text-[#EF4444] text-[14px] font-medium px-4 hover:underline">Clear all</button>
            </div>
 
-           {/* Main Data Table */}
-           <div className="flex-1">
+           {/* Data Table */}
+           <div className="border border-slate-100 rounded-[12px] overflow-hidden">
              <Table>
-                <TableHeader className="bg-slate-50/30">
-                   <TableRow className="hover:bg-transparent border-0 h-16">
-                      <TableHead className="pl-10 text-[10px] uppercase tracking-[0.25em] font-black text-slate-400">Property Address & Client</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-[0.25em] font-black text-slate-400">Client Type</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-[0.25em] font-black text-slate-400">Collaborators</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-[0.25em] font-black text-slate-400">Escrow Status</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-[0.25em] font-black text-slate-400">Contract Price</TableHead>
-                      <TableHead className="text-[10px] uppercase tracking-[0.25em] font-black text-slate-400 text-right pr-10">Actions</TableHead>
+                <TableHeader className="bg-[#F9FAFB]">
+                   <TableRow className="hover:bg-transparent border-b border-slate-100 h-10">
+                      <TableHead className="pl-6 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Property Address <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Type <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purchase Price <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Agent Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Acceptance Date <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last updated <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Close Of Escrow <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider text-center">Delete</TableHead>
                    </TableRow>
                 </TableHeader>
                 <TableBody>
-                   {MOCK_TRANSACTIONS.map((tx) => (
+                   {transactions.map((tx) => (
                       <TableRow 
                         key={tx.id} 
-                        className="group h-28 hover:bg-indigo-50/10 border-b-[#f4f7f9] transition-all cursor-pointer"
+                        className="group h-[50px] border-b border-slate-50 hover:bg-slate-50/50 transition-all cursor-pointer"
                         onClick={() => {
                           setSelectedTx(tx);
                           setIsSidePanelOpen(true);
                         }}
                       >
-                         <TableCell className="pl-10">
+                         <TableCell className="pl-6 py-3">
                            <div className="flex flex-col">
-                              <span className="font-bold text-[16px] text-[#111827] leading-tight group-hover:text-[#5A5FF2] transition-colors">{tx.address}</span>
-                              <span className="text-[13px] font-bold text-slate-400 mt-1 uppercase tracking-wide">{tx.clientName}</span>
+                              <span className="text-[12px] font-medium text-[#5a5ff2] underline leading-tight decoration-[#5a5ff2]/30 hover:decoration-[#5a5ff2] truncate max-w-[200px]">{tx.address}</span>
+                              {tx.addressLine2 && <span className="text-[11px] text-[#5a5ff2] underline decoration-[#5a5ff2]/30 hover:decoration-[#5a5ff2]">{tx.addressLine2}</span>}
                            </div>
                          </TableCell>
                          <TableCell>
-                            <Badge variant="outline" className={cn("inline-flex items-center gap-2 font-black text-[10px] px-4 h-9 shadow-sm rounded-full border-none tracking-widest", getClientTypeColor(tx.clientType))}>
+                            <div className={cn("inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium", getClientTypeStyles(tx.clientType))}>
                                {getClientTypeIcon(tx.clientType)}
-                               {tx.clientType.toUpperCase()}
-                            </Badge>
-                         </TableCell>
-                         <TableCell>
-                            <div className="flex items-center gap-3">
-                               <div className="flex -space-x-3.5 transition-transform group-hover:translate-x-1 duration-500">
-                                  {tx.collaborators.slice(0, 2).map((collab, i) => (
-                                    <Avatar key={i} className="size-11 border-4 border-white shadow-md ring-1 ring-slate-100">
-                                       <AvatarFallback className="text-[11px] font-black bg-slate-50 text-slate-400">{collab.name.substring(0,2)}</AvatarFallback>
-                                    </Avatar>
-                                  ))}
-                                  {tx.collaborators.length > 2 && (
-                                     <div className="size-11 rounded-full bg-slate-100 border-4 border-white shadow-md flex items-center justify-center text-[10px] font-black text-slate-500 ring-1 ring-slate-100">
-                                        +{tx.collaborators.length - 2}
-                                     </div>
-                                  )}
-                                  {tx.collaborators.length === 0 && (
-                                     <div className="size-11 rounded-full bg-white border-4 border-slate-100 border-dashed shadow-sm flex items-center justify-center text-slate-300">
-                                        <Users className="size-4" />
-                                     </div>
-                                  )}
-                               </div>
-                               <button 
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   setSelectedTxId(tx.id);
-                                   setIsAssignModalOpen(true);
-                                 }}
-                                 className="size-9 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-400 hover:border-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-white hover:shadow-xl transition-all scale-0 group-hover:scale-100 group-hover:rotate-180 duration-700"
-                               >
-                                  <Plus className="size-5" />
-                                </button>
+                               {tx.clientType}
                             </div>
                          </TableCell>
                          <TableCell>
-                            <Badge className="bg-amber-50 text-amber-600 border-none font-black text-[9px] uppercase h-7 px-4 tracking-[0.15em] w-fit shadow-xs">
-                               {tx.status}
-                            </Badge>
+                            <div className="flex flex-col">
+                               <span className="text-[12px] font-semibold text-[#1f2937] leading-tight">{tx.clientName}</span>
+                               <div className="flex items-center gap-1.5 mt-0.5">
+                                  <span className="text-[11px] text-slate-400 font-medium">{tx.subClientName}</span>
+                                  <Badge className="bg-[#f5f3ff] text-[#8b5cf6] border-none text-[8.5px] scale-90 px-1.5 py-0 rounded-full font-bold">+2 more</Badge>
+                               </div>
+                            </div>
                          </TableCell>
-                         <TableCell className="font-black text-[18px] text-[#111827] tracking-tight">
+                         <TableCell className="text-[13px] font-semibold text-[#1f2937]">
                             ${tx.purchasePrice.toLocaleString()}
                          </TableCell>
-                         <TableCell className="text-right pr-10">
-                            <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-500">
-                               <Button variant="ghost" size="icon" className="h-11 w-11 text-red-300 hover:text-red-500 hover:bg-red-50 rounded-[18px] transition-all">
-                                  <Trash2 className="size-5" />
-                               </Button>
-                               <Button variant="ghost" size="icon" className="h-11 w-11 text-slate-300 hover:bg-slate-50 rounded-[18px] transition-all">
-                                  <MoreHorizontal className="size-5" />
-                                </Button>
+                         <TableCell>
+                            <div className="inline-flex items-center gap-1.5 bg-[#FEF4E6] text-[#E18308] px-3 py-1 rounded-full text-[10px] font-bold">
+                               <Clock className="size-3" />
+                               {tx.status}
                             </div>
+                         </TableCell>
+                         <TableCell 
+                            onClick={(e) => {
+                               e.stopPropagation();
+                               handleOpenClientProfile(tx);
+                            }}
+                         >
+                            {tx.collaborators.length > 0 ? (
+                              <div className="flex flex-col gap-0.5">
+                                 <div className="flex items-center gap-2">
+                                    <span className="text-[13px] font-semibold text-[#1f2937] leading-tight">{tx.collaborators[0].name}</span>
+                                    <Badge variant="brand" className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest rounded-[4px] border-none flex items-center justify-center">
+                                       {tx.collaborators[0].role}
+                                    </Badge>
+                                 </div>
+                                 {tx.collaborators.length > 1 && (
+                                    <div className="flex items-center gap-1.5">
+                                       <span className="text-[11px] text-slate-400 font-medium leading-tight">{tx.collaborators[1]?.name || ""}</span>
+                                       {tx.collaborators[1] && (
+                                         <Badge variant="slate" className="h-3.5 px-1.5 text-[7.5px] font-black uppercase tracking-widest rounded-[4px] border-none opacity-60 flex items-center justify-center">
+                                            {tx.collaborators[1].role}
+                                         </Badge>
+                                       )}
+                                       {tx.collaborators.length > 2 && (
+                                          <Badge className="bg-[#f5f3ff] text-[#8b5cf6] border-none text-[8.5px] px-1.5 h-3.5 flex items-center justify-center rounded-full font-bold uppercase tracking-tight">
+                                             +{tx.collaborators.length - 2} more
+                                          </Badge>
+                                       )}
+                                    </div>
+                                 )}
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 group/add">
+                                 <span className="text-[10px] font-bold text-slate-300 tracking-widest">NONE</span>
+                                 <button 
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     setSelectedTxId(tx.id);
+                                     setIsAssignModalOpen(true);
+                                   }}
+                                   className="size-7 rounded-full border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 hover:border-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                                 >
+                                    <Plus className="size-4" />
+                                  </button>
+                              </div>
+                            )}
+                         </TableCell>
+                         <TableCell className="text-[12px] text-[#1f2937] font-medium">
+                            {tx.acceptanceDate}
+                         </TableCell>
+                         <TableCell className="text-[11px] text-slate-400 leading-tight">
+                            {tx.lastUpdated.split('\n')[0]}<br/>
+                            {tx.lastUpdated.split('\n')[1]}
+                         </TableCell>
+                         <TableCell className="text-[12px] text-[#1f2937] font-medium whitespace-nowrap">
+                            {tx.closeOfEscrow}
+                         </TableCell>
+                         <TableCell className="text-center">
+                            <button className="p-2 text-slate-200 hover:text-red-400 transition-colors">
+                              <Trash2 className="size-4" />
+                            </button>
                          </TableCell>
                       </TableRow>
                    ))}
@@ -352,24 +379,59 @@ export function TransactionsPage() {
         </div>
       </div>
 
-      <TransactionDetailSidePanel 
-        transaction={selectedTx!}
-        isOpen={isSidePanelOpen}
-        onClose={() => setIsSidePanelOpen(false)}
-      />
+      {selectedTx && (
+        <TransactionDetailSidePanel 
+          transaction={selectedTx}
+          isOpen={isSidePanelOpen}
+          onClose={() => setIsSidePanelOpen(false)}
+        />
+      )}
+
+      {selectedClient && (
+        <ClientDetailSidePanel 
+          client={selectedClient}
+          isOpen={isClientDetailOpen}
+          onClose={() => setIsClientDetailOpen(false)}
+          collaborators={INITIAL_COLLABORATORS.map(c => ({
+            id: c.id,
+            name: c.name,
+            email: c.email,
+            role: c.type.toUpperCase() as any,
+            type: c.type,
+            status: 'active' as const
+          }))}
+          initialTab="Transactions"
+        />
+      )}
 
       <AssignCollaboratorModal 
         open={isAssignModalOpen}
         onOpenChange={setIsAssignModalOpen}
-        onAssign={(collabId, type, txnId) => {
-          console.log(`Assigning ${collabId} to ${type} at level`, txnId);
+        onAssign={(collabId, _type, txnId) => {
+          const collab = INITIAL_COLLABORATORS.find(c => c.id === collabId);
+          if (collab) {
+            setTransactions(prev => prev.map(t => {
+              if (t.id === (txnId || selectedTxId)) {
+                return {
+                  ...t,
+                  collaborators: [...t.collaborators, {
+                    id: collab.id,
+                    name: collab.name,
+                    role: collab.type.toUpperCase(),
+                    status: 'active'
+                  }]
+                }
+              }
+              return t;
+            }));
+            toast.success("Assignment Confirmed", {
+              description: `Collaborator assigned to Transaction Level access.`,
+              className: "bg-[#5A5FF2] text-white",
+            });
+          }
           setIsAssignModalOpen(false);
-          toast.success("Assignment Confirmed", {
-            description: "Collaborator added to Transaction Level access.",
-            className: "bg-[#5A5FF2] text-white",
-          });
         }}
-        onOpenInvite={() => console.log("Open invite")}
+        onOpenInvite={() => toast.info("Opening invite...")}
         globalPool={INITIAL_COLLABORATORS.map(c => ({
           id: c.id,
           name: c.name,
@@ -378,7 +440,7 @@ export function TransactionsPage() {
           type: c.type,
           status: 'active'
         }))}
-        transactions={MOCK_TRANSACTIONS.map(t => ({ 
+        transactions={transactions.map(t => ({ 
           id: t.id, 
           clientId: 'client-1',
           address: t.address, 

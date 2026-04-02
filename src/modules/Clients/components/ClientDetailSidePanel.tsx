@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronRight,
-  UserCheck,
   MoreVertical,
   Plus,
   Clock,
@@ -34,6 +33,7 @@ interface ClientDetailSidePanelProps {
   onClose: () => void;
   collaborators: Collaborator[];
   initialCollabExpanded?: boolean;
+  initialTab?: string;
 }
 
 export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
@@ -41,9 +41,10 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   isOpen,
   onClose,
   collaborators,
-  initialCollabExpanded = true
+  initialCollabExpanded = true,
+  initialTab = 'Activity'
 }) => {
-  const [activeTab, setActiveTab] = useState('Activity');
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isCollabExpanded, setIsCollabExpanded] = useState(initialCollabExpanded);
@@ -137,7 +138,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     <>
       <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
         <DialogContent 
-          className="fixed top-0 !right-0 h-full w-[960px] max-w-[95vw] bg-white p-0 shadow-2xl transition-all duration-300 ease-in-out font-sans flex flex-col border-none rounded-none !left-auto !translate-x-0 !translate-y-0 outline-none z-[200] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:!slide-in-from-right-full data-[state=closed]:!slide-out-to-right-full"
+          className="fixed top-0 !right-0 h-full w-[1100px] max-w-[95vw] bg-white p-0 shadow-2xl transition-all duration-300 ease-in-out font-sans flex flex-col border-none rounded-none !left-auto !translate-x-0 !translate-y-0 outline-none z-[200] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:!slide-in-from-right-full data-[state=closed]:!slide-out-to-right-full"
           overlayClassName="z-[200]"
         >
           <div className="flex-1 overflow-y-auto no-scrollbar pt-6 px-6 pb-20">
@@ -474,38 +475,87 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  {clientTransactions.map((tx) => (
-                    <div key={tx.id} className="bg-white border border-[#efeff4] p-5 rounded-[20px] flex items-center justify-between group hover:shadow-lg transition-all border-l-[4px] border-l-[#5A5FF2]">
-                      <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                        <div className="size-[18px] border-2 border-slate-200 rounded-[2px] group-hover:border-[#5A5FF2] transition-colors cursor-pointer shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-[15px] font-bold text-[#171717] truncate">{tx.address}</p>
-                          <div className="flex items-center gap-3 mt-1 whitespace-nowrap">
-                            <Badge className="bg-[#EEFDF6] text-[#10B981] border-none font-bold text-[10px] px-2 h-5 uppercase shrink-0">{tx.status}</Badge>
-                            <span className="text-[12px] text-slate-400 font-medium">Updated 2 days ago</span>
+                <div className="space-y-4">
+                  {clientTransactions.map((tx) => {
+                    return (
+                      <div key={tx.id} className="bg-white border border-[#F1F4F9] p-6 rounded-[24px] shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                        <div className="flex justify-between items-start mb-4">
+                          <div className="space-y-1">
+                            <h4 className="text-[18px] font-black text-[#111827] tracking-tight group-hover:text-[#5A5FF2] transition-colors cursor-pointer">{tx.address}</h4>
+                            <div className="flex items-center gap-2">
+                               <p className="text-[16px] font-black text-[#10B981]">${(tx.price || 400000).toLocaleString()}</p>
+                               <span className="text-slate-300">•</span>
+                               <p className="text-[13px] font-bold text-slate-400">3 Beds, 2 Baths, 3000 Sq.ft</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3">
+                             <Badge className="bg-[#EFF8FE] text-[#0C4A6E] border-none font-black text-[10px] px-3 h-7 tracking-widest uppercase rounded-full">Buyer</Badge>
+                             <div className="bg-[#F0FDF4] border-[#DCFCE7] border-[1px] flex h-7 items-center justify-between px-3 rounded-full cursor-pointer hover:bg-[#F0FDF4]/80 transition-all gap-2">
+                                <span className="text-[#15803D] text-[10px] font-black uppercase tracking-widest">New Offer</span>
+                                <ChevronDown className="size-3 text-[#15803D]" />
+                             </div>
+                             <button className="p-1 text-slate-300 hover:text-slate-600 transition-colors">
+                                <MoreVertical className="size-5" />
+                             </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-5 gap-4 pt-4 border-t border-[#F1F4F9]">
+                          <div>
+                            <p className="text-[#A3A3A3] text-[10px] font-black uppercase tracking-widest mb-1">Client name</p>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                               <div className="size-4 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                                  <div className="size-1.5 rounded-full bg-[#5a5ff2]" />
+                               </div>
+                               <div className="flex items-center gap-1 overflow-hidden">
+                                 <span className="text-[13px] font-bold text-[#374151] truncate">
+                                   {client.name}
+                                 </span>
+                                 <Badge className="bg-[#F5F3FF] text-[#8B5CF6] border-none text-[8.5px] px-1.5 h-3.5 flex items-center justify-center rounded-full font-bold uppercase tracking-tight shrink-0">+2 more</Badge>
+                               </div>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[#A3A3A3] text-[10px] font-black uppercase tracking-widest mb-1">Acceptance</p>
+                            <span className="text-[13px] font-bold text-[#374151] truncate block">{tx.acceptanceDate || "Nov 28, 2024"}</span>
+                          </div>
+                          <div>
+                            <p className="text-[#A3A3A3] text-[10px] font-black uppercase tracking-widest mb-1">Close of escrow</p>
+                            <span className="text-[13px] font-bold text-[#374151] truncate block">{tx.closeOfEscrow || "Nov 28, 2024"}</span>
+                          </div>
+                          <div>
+                            <p className="text-[#A3A3A3] text-[10px] font-black uppercase tracking-widest mb-1">Agent name</p>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                               <div className="size-4 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                                  <div className="size-1.5 rounded-full bg-[#5a5ff2]" />
+                               </div>
+                               <span className="text-[13px] font-bold text-[#374151] truncate">
+                                 {tx.agentName || "Any Williams"}
+                               </span>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-[#A3A3A3] text-[10px] font-black uppercase tracking-widest mb-1">Collaborator</p>
+                            <div className="flex items-center gap-1.5 overflow-hidden">
+                               <div className="size-4 rounded-full bg-indigo-100 flex items-center justify-center shrink-0">
+                                  <div className="size-1.5 rounded-full bg-[#5a5ff2]" />
+                               </div>
+                               <div className="flex items-center gap-1 overflow-hidden">
+                                 <span className="text-[13px] font-bold text-[#374151] truncate">
+                                   {tx.collaborators?.[0]?.name || "None"}
+                                 </span>
+                                 {tx.collaborators?.length > 1 && (
+                                   <Badge className="bg-[#F5F3FF] text-[#8B5CF6] border-none text-[8.5px] px-1.5 h-3.5 flex items-center justify-center rounded-full font-bold uppercase tracking-tight shrink-0">
+                                     +{tx.collaborators.length - 1} more
+                                   </Badge>
+                                 )}
+                               </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          className="h-9 rounded-full bg-[#f8fafc] text-[#5A5FF2] font-bold hover:bg-[#5A5FF2]/5 flex items-center gap-2 group-hover:bg-[#5A5FF2] group-hover:text-white transition-all shadow-sm"
-                          onClick={(e) => {
-                             e.stopPropagation();
-                             openAssignModal('transaction', tx.id);
-                          }}
-                        >
-                          <UserCheck className="size-4" />
-                          Assign
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-300">
-                          <ChevronRight className="size-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ) : (

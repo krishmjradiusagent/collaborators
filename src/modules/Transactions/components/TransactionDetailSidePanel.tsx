@@ -51,14 +51,19 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
      transaction?.collaborators?.map(c => ({
        ...c,
        email: `${c.name.toLowerCase().replace(' ', '.')}@example.com`,
-       status: 'active' as const,
-       type: c.role.toLowerCase().includes('t.c') ? 'tc' : 'lender'
+       status: c.status || 'active',
+       type: c.role.toLowerCase().includes('t.c') ? 'tc' : 'lender',
+       invitationExpiry: c.invitationExpiry
      })) || []
   );
 
+  const collabSectionRef = React.useRef<HTMLDivElement>(null);
+
   React.useEffect(() => {
-    if (isOpen) {
-      setIsCollabExpanded(initialCollabExpanded);
+    if (isOpen && initialCollabExpanded && collabSectionRef.current) {
+      setTimeout(() => {
+        collabSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 500);
     }
   }, [isOpen, initialCollabExpanded]);
 
@@ -77,7 +82,7 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
     <>
       <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onClose()}>
         <DialogContent 
-          className="fixed top-0 !right-0 h-full w-[960px] max-w-[95vw] bg-white p-0 shadow-2xl transition-all duration-300 ease-in-out font-sans flex flex-col border-none rounded-none !left-auto !translate-x-0 !translate-y-0 outline-none z-[200] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:!slide-in-from-right-full data-[state=closed]:!slide-out-to-right-full"
+          className="fixed top-0 !right-0 h-full w-[1100px] max-w-[95vw] bg-white p-0 shadow-2xl transition-all duration-300 ease-in-out font-sans flex flex-col border-none rounded-none !left-auto !translate-x-0 !translate-y-0 outline-none z-[200] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=open]:!slide-in-from-right-full data-[state=closed]:!slide-out-to-right-full"
           overlayClassName="z-[200]"
         >
           <div className="flex-1 overflow-y-auto no-scrollbar pt-6 px-10 pb-20 bg-[#fcfdff]">

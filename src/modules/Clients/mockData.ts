@@ -98,20 +98,31 @@ export const MOCK_TRANSACTIONS: any[] = [
     clientId: "1",
     address: "123 Mission Street, Apt 4B",
     status: "Under Contract",
-    price: 1250000
+    price: 1250000,
+    agentName: "Any Williams",
+    collaborators: [
+      { id: "c1", name: "Sarah Miller", role: "T.C." },
+      { id: "c2", name: "Jessica Taylor", role: "Lender" }
+    ]
   },
   {
     id: "t2",
     clientId: "1",
     address: "456 Castro Avenue",
     status: "Listing Prepped",
-    price: 980000
+    price: 980000,
+    agentName: "Any Williams",
+    collaborators: [
+      { id: "c1", name: "Sarah Miller", role: "T.C." }
+    ]
   },
   {
     id: "t3",
     clientId: "2",
     address: "789 Pine Lane",
     status: "Active",
-    price: 3200000
+    price: 3200000,
+    agentName: "Any Williams",
+    collaborators: []
   }
 ]

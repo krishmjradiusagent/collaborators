@@ -3,13 +3,17 @@ export type TransactionStatus = 'Active' | 'Pending' | 'Closed' | 'Cancelled' | 
 export interface Collaborator {
   id: string;
   name: string;
+  role: 'T.C.' | 'Lender' | 'Co-Agent' | 'Assistant' | string;
+  email?: string;
   avatar?: string;
-  role: string;
+  status?: 'active' | 'invited' | 'pending';
+  invitationExpiry?: string;
 }
 
 export interface Transaction {
   id: string;
   address: string;
+  addressLine2?: string;
   clientType: 'Buyer' | 'Seller' | 'Landlord' | 'Tenant' | 'Referral';
   clientName: string;
   subClientName?: string;
@@ -17,7 +21,7 @@ export interface Transaction {
   status: string;
   agentName: string;
   acceptanceDate?: string;
-  lastUpdated: string;
   closeOfEscrow?: string;
+  lastUpdated: string;
   collaborators: Collaborator[];
 }
