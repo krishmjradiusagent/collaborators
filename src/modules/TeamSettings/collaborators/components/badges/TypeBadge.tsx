@@ -1,5 +1,5 @@
 import { CollaboratorType } from "../../types";
-import { cn } from "../../../../../lib/utils";
+import { Badge } from "../../../../../components/ui/Badge";
 
 interface TypeBadgeProps {
   type: CollaboratorType;
@@ -8,19 +8,19 @@ interface TypeBadgeProps {
 const TYPE_CONFIG = {
   tc: {
     label: "Transaction Coordinator",
-    className: "bg-blue-100/50 text-blue-700 border-blue-200/50",
+    variant: "indigo" as const,
   },
   lender: {
     label: "Lender",
-    className: "bg-emerald-100/50 text-emerald-700 border-emerald-200/50",
+    variant: "emerald" as const,
   },
   vendor: {
     label: "Vendor",
-    className: "bg-purple-100/50 text-purple-700 border-purple-200/50",
+    variant: "purple" as const,
   },
   va: {
     label: "Virtual Assistant",
-    className: "bg-amber-100/50 text-amber-700 border-amber-200/50",
+    variant: "amber" as const,
   },
 } as const;
 
@@ -28,11 +28,8 @@ export function TypeBadge({ type }: TypeBadgeProps) {
   const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.tc;
   
   return (
-    <div className={cn(
-      "inline-flex items-center px-1.5 h-4 rounded-md text-[9px] font-bold uppercase tracking-tighter border shadow-sm",
-      config.className
-    )}>
+    <Badge variant={config.variant} className="rounded-md px-1.5 h-4 text-[9px]">
       {config.label}
-    </div>
+    </Badge>
   );
 }

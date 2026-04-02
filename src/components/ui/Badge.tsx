@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "../../lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+  "inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-tight transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -15,14 +15,18 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
-        success:
-           "border-transparent bg-emerald-100 text-emerald-700 hover:bg-emerald-200/80",
-        warning:
-           "border-transparent bg-amber-100 text-amber-700 hover:bg-amber-200/80",
-        behind:
-           "border-transparent bg-rose-50 text-rose-600 hover:bg-rose-100/80",
-        ontrack:
-           "border-transparent bg-emerald-50 text-emerald-600 hover:bg-emerald-100/80",
+        indigo:
+           "border-blue-100 bg-blue-50 text-blue-700 hover:bg-blue-100/80",
+        emerald:
+           "border-emerald-100 bg-emerald-50 text-emerald-700 hover:bg-emerald-100/80",
+        amber:
+           "border-amber-100 bg-amber-50 text-amber-700 hover:bg-amber-100/80",
+        purple:
+           "border-purple-100 bg-purple-50 text-purple-700 hover:bg-purple-100/80",
+        rose:
+           "border-rose-100 bg-rose-50 text-rose-700 hover:bg-rose-100/80",
+        slate:
+           "border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100/80",
       },
     },
     defaultVariants: {
