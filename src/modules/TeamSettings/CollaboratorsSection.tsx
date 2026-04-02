@@ -4,6 +4,8 @@ import { CollaboratorTable } from "./collaborators/components/CollaboratorTable"
 import { InviteCollaboratorModal } from "./collaborators/components/InviteCollaboratorModal";
 import { RemoveCollaboratorConfirm } from "./collaborators/components/RemoveCollaboratorConfirm";
 import { Collaborator } from "./collaborators/types";
+import { Button } from "@/components/ui/Button";
+import { Plus } from "lucide-react";
 
 export function CollaboratorsSection() {
   const {
@@ -37,27 +39,27 @@ export function CollaboratorsSection() {
   const activeCollaborators = collaborators.filter(c => c.status === "active");
 
   return (
-    <div className="w-full space-y-12 font-sans px-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-         <div className="space-y-4 flex-1">
-            <div className="flex items-center gap-4">
-               <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-[#111827] uppercase tracking-wide">Collaborators</h2>
-                  <div className="h-1.5 w-1.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)] animate-pulse" />
-               </div>
-               
-               <div className="px-3 py-1 rounded-full bg-blue-50 border border-blue-100 flex items-center gap-2">
-                  <span className="text-[11px] font-black text-blue-600 uppercase tracking-widest leading-none">{totalCount} Members</span>
-               </div>
+    <div className="w-full space-y-6 font-sans">
+      <div className="pt-8 border-t border-[#EFEFEF] -mx-8 px-8 flex items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-[#111827]">Collaborators</h2>
+            <div className="px-2 py-0.5 rounded-full bg-blue-50 border border-blue-100 flex items-center gap-1.5">
+               <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-none">{totalCount} Members</span>
             </div>
-            
-            <p className="text-[14px] text-slate-500 font-bold whitespace-nowrap overflow-hidden text-ellipsis">
-               Manage invitations, roles, and assignments for your external collaborators.
-            </p>
-         </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Manage invitations, roles, and assignments for your external collaborators.</p>
+        </div>
+
+        <Button 
+          className="rounded-full bg-blue-600 hover:bg-blue-700 h-10 px-6 gap-2 shadow-lg shadow-blue-100 mt-1 font-bold"
+          onClick={() => setIsInviteModalOpen(true)}
+        >
+          <Plus className="h-4 w-4" />
+          Collaborator
+        </Button>
       </div>
 
-      {/* The Table - Pass a light mode prop or handle it inside */}
       <CollaboratorTable 
         collaborators={collaborators}
         allClients={allClients}
@@ -73,7 +75,6 @@ export function CollaboratorsSection() {
         onResend={resendInvite}
       />
 
-      {/* Modals */}
       <InviteCollaboratorModal 
         open={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}

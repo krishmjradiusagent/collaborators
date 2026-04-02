@@ -74,7 +74,7 @@ export function TeamSettingsContent() {
       </div>
 
       {/* NEW: Collaborators Section - Full Visual Parity with Goals */}
-      <div className="bg-white border-t border-b border-[#EFEFEF] -mx-8 px-8 py-16">
+      <div className="w-full">
         <CollaboratorsSection />
       </div>
 

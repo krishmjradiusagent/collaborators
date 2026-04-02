@@ -7,7 +7,7 @@ interface TypeBadgeProps {
 
 const TYPE_CONFIG = {
   tc: {
-    label: "Transaction Coordinator",
+    label: "T.C.",
     variant: "indigo" as const,
   },
   lender: {
@@ -19,7 +19,7 @@ const TYPE_CONFIG = {
     variant: "purple" as const,
   },
   va: {
-    label: "Virtual Assistant",
+    label: "V.A.",
     variant: "amber" as const,
   },
 } as const;
@@ -28,7 +28,7 @@ export function TypeBadge({ type }: TypeBadgeProps) {
   const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.tc;
   
   return (
-    <Badge variant={config.variant} className="rounded-md px-1.5 h-4 text-[9px] w-fit">
+    <Badge variant={config.variant} className="h-5 px-2 text-[10px] font-bold uppercase tracking-tight">
       {config.label}
     </Badge>
   );

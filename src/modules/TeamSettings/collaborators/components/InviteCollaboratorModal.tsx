@@ -176,7 +176,7 @@ export function InviteCollaboratorModal({
             
             <DialogDescription className="text-slate-500 font-medium text-[16px] mt-3">
               {step === 1 
-                ? "Which role are you adding to your team network? You can change this later." 
+                ? "Which role are you adding to your team network? You cannot change this later." 
                 : "Enter their professional details to send the secure access link."
               }
             </DialogDescription>
