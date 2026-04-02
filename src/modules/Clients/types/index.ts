@@ -1,4 +1,5 @@
 export type ClientType = 'Seller' | 'Buyer' | 'Landlord' | 'Tenant' | 'Referrals'
+export type MortgageStatus = 'N/A' | 'Pre-Approved' | 'Approved' | 'Rejected'
 
 export interface Client {
   id: string
@@ -15,6 +16,7 @@ export interface Client {
   address: string
   addedOn: string
   source: string
+  mortgage_status?: MortgageStatus
 }
 
 export type CollaboratorRole = 'Title Coordinator' | 'VA' | 'Lender' | 'Vendor'

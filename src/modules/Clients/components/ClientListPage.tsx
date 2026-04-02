@@ -1,17 +1,16 @@
 import * as React from "react"
 import {
-   Plus,
-   Settings,
-   Grid,
-   Upload,
-   Filter,
-   Bookmark,
-   MoreVertical,
-   ChevronRight,
-   ChevronDown,
-   Search,
-   Users
- } from "lucide-react"
+  Plus,
+  Settings,
+  Grid,
+  Upload,
+  Filter,
+  Bookmark,
+  MoreVertical,
+  ChevronRight,
+  ChevronDown,
+  Search
+} from "lucide-react"
 import { Button } from "../../../components/ui/Button"
 import { Input } from "../../../components/ui/Input"
 import { Badge } from "../../../components/ui/Badge"
@@ -26,10 +25,16 @@ import {
 } from "../../../components/ui/Table"
 import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/Avatar"
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../../../components/ui/DropdownMenu"
+import {
   TooltipProvider,
 } from "../../../components/ui/Tooltip"
 import { MOCK_CLIENTS, GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS, MOCK_TRANSACTIONS } from "../mockData"
-import { Client } from "../types"
+import { Client, MortgageStatus } from "../types"
 import { ClientDetailSidePanel } from "./ClientDetailSidePanel"
 import { AssignCollaboratorModal } from "./AssignCollaboratorModal"
 import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
@@ -51,8 +56,20 @@ export function ClientListPage({ }: ClientListPageProps) {
 
   // Local state for instant updates
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
+  const [localClients, setLocalClients] = React.useState<Client[]>(MOCK_CLIENTS)
+  const { currentRole, isCollaborator, canInvite, canAssign } = useRole()
 
-  const { isCollaborator, canInvite, canAssign } = useRole()
+  const isMortgageVisible = ["TEAM_LEAD", "AGENT", "LENDER"].includes(currentRole)
+  const canEditMortgage = ["TEAM_LEAD", "AGENT", "LENDER"].includes(currentRole)
+
+  const handleMortgageStatusUpdate = (clientId: string, newStatus: MortgageStatus) => {
+    setLocalClients(prev => prev.map(c => c.id === clientId ? { ...c, mortgage_status: newStatus } : c))
+
+    if (newStatus === 'Approved' || newStatus === 'Rejected') {
+      // Trigger notification (mock)
+      console.log(`Notification: Client ${clientId} mortgage status changed to ${newStatus}. Assigned agent notified.`)
+    }
+  }
 
   const handleRowClick = (client: Client) => {
     setShouldExpandCollab(false) // Default: don't specific expand on row click
@@ -151,16 +168,16 @@ export function ClientListPage({ }: ClientListPageProps) {
             <Button variant="outline" className="flex items-center gap-2 text-[#373758] font-bold border-[#EFEFEF] rounded-[10px] h-10">
               <Settings className="h-4 w-4" /> Integrations
             </Button>
-          {!isCollaborator && (
-            <div className="flex items-center gap-3">
-              <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
-                <Plus className="h-4 w-4" /> Client
-              </Button>
-              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-                <Upload className="h-4 w-4" /> Import CSV
-              </Button>
-            </div>
-          )}
+            {!isCollaborator && (
+              <div className="flex items-center gap-3">
+                <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
+                  <Plus className="h-4 w-4" /> Client
+                </Button>
+                <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
+                  <Upload className="h-4 w-4" /> Import CSV
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -229,8 +246,13 @@ export function ClientListPage({ }: ClientListPageProps) {
                   </div>
                 </TableHead>
                 <TableHead className="text-[#373758] font-bold text-[14px]">
-                  Type <ChevronDown className="h-3 w-3" />
+                  Type
                 </TableHead>
+                {isMortgageVisible && (
+                  <TableHead className="text-[#373758] font-bold text-[14px]">
+                    Mortgage Status
+                  </TableHead>
+                )}
                 <TableHead className="text-[#373758] font-bold text-[14px]">
                   Collaborators
                 </TableHead>
@@ -238,7 +260,7 @@ export function ClientListPage({ }: ClientListPageProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {MOCK_CLIENTS.map((client) => {
+              {localClients.map((client) => {
                 const assignments = localAssignments.filter(a => a.clientId === client.id)
                 const assignedCollabs = GLOBAL_COLLABORATOR_POOL.filter(c =>
                   assignments.some(a => a.collaboratorId === c.id)
@@ -255,23 +277,23 @@ export function ClientListPage({ }: ClientListPageProps) {
                     </TableCell>
                     <TableCell className="font-bold text-[#373758]">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-[36px] w-[36px] ring-2 ring-transparent group-hover:ring-[#5A5FF2]/20 transition-all">
+                        <Avatar className="h-[32px] w-[32px] ring-2 ring-transparent group-hover:ring-[#5A5FF2]/20 transition-all">
                           <AvatarImage src={client.avatar} />
                           <AvatarFallback>{client.name[0]}</AvatarFallback>
                         </Avatar>
-                        <span className="text-[#5A5FF2] hover:underline decoration-[2px] underline-offset-4">{client.name}</span>
+                        <span className="text-[#5A5FF2] hover:underline decoration-[2px] underline-offset-4 text-[13.5px] truncate max-w-[140px]">{client.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1.5 max-w-[280px]">
-                        {client.tags.slice(0, 3).map((tag, i) => (
-                          <Badge key={i} variant="outline" className="text-[11px] bg-slate-50 border-none text-slate-500 font-bold px-2.5 py-1 rounded-[6px]">
+                      <div className="flex flex-wrap gap-1 max-w-[180px]">
+                        {client.tags.slice(0, 2).map((tag, i) => (
+                          <Badge key={i} variant="outline" className="text-[10px] bg-slate-50 border-none text-slate-500 font-bold px-2 py-0.5 rounded-[4px] whitespace-nowrap">
                             {tag}
                           </Badge>
                         ))}
-                        {client.tags.length > 3 && (
-                          <Badge variant="outline" className="text-[11px] bg-white border-slate-100 text-[#5A5FF2] font-bold px-2 py-1 rounded-[6px] shadow-sm">
-                            +{client.tags.length - 3} more
+                        {client.tags.length > 2 && (
+                          <Badge variant="outline" className="text-[10px] bg-white border-slate-100 text-[#5A5FF2] font-bold px-2 py-0.5 rounded-[4px] shadow-sm whitespace-nowrap">
+                            +{client.tags.length - 2}
                           </Badge>
                         )}
                       </div>
@@ -290,14 +312,44 @@ export function ClientListPage({ }: ClientListPageProps) {
                       <span className="text-slate-300 font-medium">12:00 PM</span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col gap-1.5">
+                      <div className="grid grid-cols-2 gap-1 w-fit">
                         {client.types.map((type, i) => (
-                          <div key={i} className="flex items-center gap-1.5 text-[#10B981] font-bold text-[12px] bg-[#EEFDF6] px-2.5 py-1 rounded-full w-fit border border-[#10B981]/10">
-                            <Users className="h-3 w-3 fill-[#10B981]/10" /> {type}
+                          <div key={i} className="flex items-center gap-1 text-[#10B981] font-bold text-[10px] bg-[#EEFDF6] px-2 py-0.5 rounded-full border border-[#10B981]/10 whitespace-nowrap">
+                            {type}
                           </div>
                         ))}
                       </div>
                     </TableCell>
+                    {isMortgageVisible && (
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild disabled={!canEditMortgage}>
+                              <button className={`flex items-center gap-2 px-3 py-1.5 rounded-[10px] font-bold text-[11px] transition-all border outline-none whitespace-nowrap
+                              ${client.mortgage_status === 'Approved' ? 'bg-[#EEFDF6] text-[#10B981] border-[#10B981]/10' :
+                                  client.mortgage_status === 'Pre-Approved' ? 'bg-[#5A5FF2]/10 text-[#5A5FF2] border-[#5A5FF2]/10' :
+                                    client.mortgage_status === 'Rejected' ? 'bg-[#FEF2F2] text-[#EF4444] border-[#EF4444]/10' :
+                                      'bg-slate-50 text-slate-500 border-slate-100'}`}
+                              >
+                                {client.mortgage_status || 'N/A'}
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" className="rounded-[12px] p-1.5 border-[#EFEFEF]">
+                              {(['N/A', 'Pre-Approved', 'Approved', 'Rejected'] as MortgageStatus[]).map((status) => (
+                                <DropdownMenuItem
+                                  key={status}
+                                  onClick={() => handleMortgageStatusUpdate(client.id, status)}
+                                  className={`rounded-[8px] font-bold text-[13px] px-3 py-2 cursor-pointer
+                                  ${client.mortgage_status === status ? 'bg-[#5A5FF2]/5 text-[#5A5FF2]' : 'text-[#373758]'}`}
+                                >
+                                  {status}
+                                </DropdownMenuItem>
+                              ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    )}
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex flex-col gap-0.5 min-w-[140px] py-1 justify-center">
                         {/* 0 Collabs Case */}
@@ -322,7 +374,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                           <div className="flex items-center gap-2 h-[18px]">
                             <div className="flex items-center gap-1.5 overflow-hidden">
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                {assignedCollabs[0].name.split(' ')[0]}
+                                {assignedCollabs[0].name}
                               </span>
                               <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
@@ -342,14 +394,14 @@ export function ClientListPage({ }: ClientListPageProps) {
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5 h-[18px]">
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                {assignedCollabs[1].name.split(' ')[0]}
+                                {assignedCollabs[1].name}
                               </span>
                               <TypeBadge type={assignedCollabs[1].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
                             <div className="flex items-center gap-2 h-[18px]">
                               <div className="flex items-center gap-1.5 overflow-hidden">
                                 <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                  {assignedCollabs[0].name.split(' ')[0]}
+                                  {assignedCollabs[0].name}
                                 </span>
                                 <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                               </div>
@@ -370,7 +422,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-1.5 h-[18px]">
                               <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                {assignedCollabs[assignedCollabs.length - 1].name.split(' ')[0]}
+                                {assignedCollabs[assignedCollabs.length - 1].name}
                               </span>
                               <TypeBadge type={assignedCollabs[assignedCollabs.length - 1].type} className="h-[14px] px-1 text-[7px]" />
                             </div>

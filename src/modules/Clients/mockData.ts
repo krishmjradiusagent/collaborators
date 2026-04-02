@@ -15,7 +15,8 @@ export const MOCK_CLIENTS: Client[] = [
     tags: ["New client", "High priority", "Top priority clients", "FSBO"],
     address: "123 missions street, 3543 bouleverad ave, 4th cross, Palo alto, California, 54323",
     addedOn: "JUN 3 2024",
-    source: "Radius Marketplace"
+    source: "Radius Marketplace",
+    mortgage_status: "Approved"
   },
   {
     id: "2",
@@ -31,7 +32,8 @@ export const MOCK_CLIENTS: Client[] = [
     tags: ["New client", "High priority"],
     address: "456 Oak Lane, San Francisco, CA 94102",
     addedOn: "JUN 20 2024",
-    source: "Referral"
+    source: "Referral",
+    mortgage_status: "Pre-Approved"
   }
 ]
 
