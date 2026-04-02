@@ -12,20 +12,19 @@ import {
   Send, 
   MessageSquare,
   MoreHorizontal,
-  Users
+  Users,
+  ShieldCheck
 } from "lucide-react"
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from "../../../components/ui/Tooltip"
 import { cn } from "../../../lib/utils"
 import { Button } from "../../../components/ui/Button"
 import { Badge } from "../../../components/ui/Badge"
 import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/Avatar"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../../components/ui/Table"
 import { Separator } from "../../../components/ui/Separator"
 import { Client, Collaborator } from "../types"
 import { GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS } from "../mockData"
@@ -237,43 +236,60 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
                     </button>
                  </div>
                ) : (
-                 <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader className="bg-slate-50/50">
-                        <TableRow className="hover:bg-transparent border-none h-12">
-                          <TableHead className="text-slate-400 font-extrabold text-[10px] uppercase tracking-[0.15em] pl-8">Name</TableHead>
-                          <TableHead className="text-slate-400 font-extrabold text-[10px] uppercase tracking-[0.15em]">Role</TableHead>
-                          <TableHead className="text-slate-400 font-extrabold text-[10px] uppercase tracking-[0.15em]">Email</TableHead>
-                          <TableHead className="text-slate-400 font-extrabold text-[10px] uppercase tracking-[0.15em]">Status</TableHead>
-                          <TableHead className="text-slate-400 font-extrabold text-[10px] uppercase tracking-[0.15em] text-right pr-8">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                         {assignedCollabs.map((collab, i) => (
-                           <TableRow key={i} className="hover:bg-blue-50/10 border-b border-[#F8FAFC] transition-colors h-[72px]">
-                              <TableCell className="font-extrabold text-[#373758] text-[15px] pl-8 py-0">{collab.name}</TableCell>
-                              <TableCell className="py-0">
-                                 <Badge className="bg-[#5A5FF2]/5 text-[#5A5FF2] border-[#5A5FF2]/10 border-2 font-black text-[10px] px-3.5 py-1.5 rounded-[8px] tracking-tight shadow-sm uppercase">
-                                    {collab.role}
-                                 </Badge>
-                              </TableCell>
-                              <TableCell className="text-slate-500 font-semibold text-[14px] py-0">{collab.email}</TableCell>
-                              <TableCell className="py-0">
-                                 <div className="flex items-center gap-2.5">
-                                    <div className={cn("size-2 rounded-full", collab.status === 'active' ? 'bg-[#10B981] shadow-[0_0_12px_rgba(16,185,129,0.5)]' : 'bg-slate-300')} />
-                                    <span className={cn("text-[13px] font-black uppercase tracking-wide", collab.status === 'active' ? 'text-[#10B981]' : 'text-slate-400')}>{collab.status}</span>
-                                 </div>
-                              </TableCell>
-                              <TableCell className="text-right pr-8 py-0">
-                                 <button className="size-10 flex items-center justify-center ml-auto hover:bg-slate-100 rounded-xl transition-all text-slate-300 hover:text-slate-900 active:scale-95 shadow-sm">
-                                    <MoreHorizontal className="h-5 w-5" />
-                                 </button>
-                              </TableCell>
-                           </TableRow>
-                         ))}
-                      </TableBody>
-                    </Table>
-                 </div>
+                  <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/10">
+                     {assignedCollabs.map((collab, i) => (
+                       <div 
+                         key={i} 
+                         className="group bg-white rounded-2xl border border-slate-100 p-5 flex items-center justify-between transition-all duration-300 hover:shadow-md hover:border-[#5A5FF2]/20 cursor-pointer relative"
+                       >
+                         <div className="flex items-center gap-4">
+                           <div className="relative">
+                             <div className="size-12 rounded-2xl bg-indigo-50/50 flex items-center justify-center border border-indigo-100/50 group-hover:scale-105 transition-transform duration-300">
+                               <span className="text-[14px] font-black text-indigo-500 uppercase">{collab.name[0]}</span>
+                             </div>
+                             
+                             {/* Avatar Shield Tooltip */}
+                             <TooltipProvider>
+                               <Tooltip delayDuration={0}>
+                                 <TooltipTrigger asChild>
+                                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-slate-100 flex items-center justify-center shadow-sm text-indigo-500 cursor-help transform hover:scale-110 transition-transform">
+                                      <ShieldCheck className="h-3 w-3 fill-indigo-500/10" />
+                                   </div>
+                                 </TooltipTrigger>
+                                 <TooltipContent className="bg-[#060D4D] text-white border-[#060D4D]/20 shadow-xl">
+                                    <p className="font-bold tracking-tight">Verified Professional</p>
+                                 </TooltipContent>
+                               </Tooltip>
+                             </TooltipProvider>
+                           </div>
+                           
+                           <div className="flex flex-col gap-0.5">
+                              <span className="font-black text-[16px] text-slate-900 tracking-tight">{collab.name}</span>
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-[#5A5FF2]/5 text-[#5A5FF2] border-none font-black text-[10px] px-2 py-0.5 rounded-full tracking-tighter uppercase shadow-none">
+                                   {collab.role}
+                                </Badge>
+                                <span className="size-1 rounded-full bg-slate-300" />
+                                <span className="text-[12px] text-slate-400 font-medium truncate max-w-[120px]">{collab.email}</span>
+                              </div>
+                           </div>
+                         </div>
+
+                         <div className="flex items-center gap-3">
+                            <div className="flex flex-col items-end gap-1 px-3 py-1.5 rounded-xl bg-slate-50 group-hover:bg-[#EEF2FF] transition-colors">
+                               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">STATUS</span>
+                               <div className="flex items-center gap-1.5">
+                                  <div className={cn("size-1.5 rounded-full", collab.status === 'active' ? 'bg-[#10B981] shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300')} />
+                                  <span className={cn("text-[11px] font-black uppercase tracking-wide", collab.status === 'active' ? 'text-[#10B981]' : 'text-slate-400')}>{collab.status}</span>
+                               </div>
+                            </div>
+                            <button className="size-9 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-all text-slate-300 hover:text-slate-900 active:scale-95 shadow-sm">
+                               <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                         </div>
+                       </div>
+                     ))}
+                  </div>
                )}
             </div>
          </div>

@@ -41,6 +41,8 @@ export const GLOBAL_COLLABORATOR_POOL: Collaborator[] = [
     name: "Sarah Johnson",
     email: "sarah.johnson@tc.com",
     role: "Title Coordinator",
+    type: "tc",
+    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop",
     status: "active"
   },
   {
@@ -48,6 +50,8 @@ export const GLOBAL_COLLABORATOR_POOL: Collaborator[] = [
     name: "Robert Martinez",
     email: "robert.martinez@lender.com",
     role: "Lender",
+    type: "lender",
+    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&auto=format&fit=crop",
     status: "active"
   },
   {
@@ -55,6 +59,8 @@ export const GLOBAL_COLLABORATOR_POOL: Collaborator[] = [
     name: "Emily Davis",
     email: "emily.davis@va.com",
     role: "VA",
+    type: "va",
+    avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=150&h=150&auto=format&fit=crop",
     status: "active"
   },
   {
@@ -62,6 +68,8 @@ export const GLOBAL_COLLABORATOR_POOL: Collaborator[] = [
     name: "Michael Chen",
     email: "michael.chen@vendor.com",
     role: "Vendor",
+    type: "vendor",
+    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&h=150&auto=format&fit=crop",
     status: "invited",
     expiryDate: "7 days"
   }

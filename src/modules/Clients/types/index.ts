@@ -25,6 +25,7 @@ export interface Collaborator {
   email: string
   avatar?: string
   role: CollaboratorRole
+  type: 'tc' | 'lender' | 'vendor' | 'va'
   status: 'active' | 'invited'
   expiryDate?: string
 }

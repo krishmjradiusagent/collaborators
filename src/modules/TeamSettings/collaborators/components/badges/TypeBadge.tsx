@@ -1,8 +1,10 @@
 import { CollaboratorType } from "../../types";
 import { Badge } from "../../../../../components/ui/Badge";
+import { cn } from "../../../../../lib/utils";
 
 interface TypeBadgeProps {
   type: CollaboratorType;
+  className?: string;
 }
 
 const TYPE_CONFIG = {
@@ -24,11 +26,11 @@ const TYPE_CONFIG = {
   },
 } as const;
 
-export function TypeBadge({ type }: TypeBadgeProps) {
+export function TypeBadge({ type, className }: TypeBadgeProps) {
   const config = TYPE_CONFIG[type as keyof typeof TYPE_CONFIG] || TYPE_CONFIG.tc;
   
   return (
-    <Badge variant={config.variant} className="h-5 px-2 text-[10px] font-bold uppercase tracking-tight">
+    <Badge variant={config.variant} className={cn("h-5 px-2 text-[10px] font-bold uppercase tracking-tight", className)}>
       {config.label}
     </Badge>
   );

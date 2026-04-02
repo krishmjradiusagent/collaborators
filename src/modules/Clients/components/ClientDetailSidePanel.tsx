@@ -4,61 +4,60 @@ import {
   DialogContent
 } from '@/components/ui/Dialog';
 import { 
-  ArrowLeft,
-  Sparkles,
-  Star,
+  CheckCircle2,
   ChevronDown,
   ChevronRight,
   UserCheck,
   MoreVertical,
-  Clock,
   Plus,
+  Clock,
   Calendar,
-  CheckCircle2,
-  User,
-  Home,
-  Shield,
-  Trash2,
-  Mail
+  Sparkles,
+  Star,
+  ArrowLeft
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Separator } from '@/components/ui/Separator';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/DropdownMenu';
 import { Client, Collaborator, ClientAssignment } from '../types';
+import { MOCK_TRANSACTIONS, MOCK_ASSIGNMENTS } from '../mockData';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { AssignCollaboratorModal } from './AssignCollaboratorModal';
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
-import { MOCK_TRANSACTIONS, MOCK_ASSIGNMENTS } from '../mockData';
-import { toast } from 'sonner';
+import { CollaboratorCard } from './CollaboratorCard';
 
 interface ClientDetailSidePanelProps {
   client: Client;
   isOpen: boolean;
   onClose: () => void;
   collaborators: Collaborator[];
+  initialCollabExpanded?: boolean;
 }
 
 export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   client,
   isOpen,
   onClose,
-  collaborators
+  collaborators,
+  initialCollabExpanded = true
 }) => {
   const [activeTab, setActiveTab] = useState('Activity');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isCollabExpanded, setIsCollabExpanded] = useState(initialCollabExpanded);
   const [modalDefaultType, setModalDefaultType] = useState<'client' | 'transaction'>('client');
   const [modalDefaultTxId, setModalDefaultTxId] = useState<string | undefined>(undefined);
   const [assignments, setAssignments] = useState<ClientAssignment[]>(
     MOCK_ASSIGNMENTS.filter(a => a.clientId === client.id)
   );
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setIsCollabExpanded(initialCollabExpanded);
+    }
+  }, [isOpen, initialCollabExpanded]);
 
   const clientTransactions = MOCK_TRANSACTIONS.filter(t => t.clientId === client.id);
 
@@ -268,121 +267,86 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
 
                 {/* Innovative Collaborator Cards */}
                 <div className="w-full">
-                  <div className="flex items-center justify-between w-full h-[32px] cursor-pointer py-1" onClick={() => {}}>
-                    <span className="text-[#111827] text-[14px] font-bold">Collaborators</span>
+                  <div className="flex items-center justify-between w-full h-[32px] cursor-pointer py-1" onClick={() => setIsCollabExpanded(!isCollabExpanded)}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[#111827] text-[14px] font-bold">Collaborators</span>
+                      {assignedCollabs.length > 0 && (
+                        <Badge className="bg-[#5a5ff2] hover:bg-[#5a5ff2] text-white text-[12px] h-[20px] px-1.5 min-w-[20px] flex items-center justify-center rounded-full border-none">
+                          {assignedCollabs.length}
+                        </Badge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-3">
-                      <ChevronDown className="size-5 text-[#111827]" />
+                      <div 
+                        className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openAssignModal('client');
+                        }}
+                      >
+                        <Plus className="size-3 text-[#5a5ff2]" />
+                      </div>
+                      {isCollabExpanded ? (
+                        <ChevronDown className="size-5 text-[#111827]" />
+                      ) : (
+                        <ChevronRight className="size-5 text-[#111827]" />
+                      )}
                     </div>
                   </div>
                   
-                  {assignedCollabs.length > 0 ? (
-                    <div className="space-y-5 py-5">
-                      {assignedCollabs.map((collab) => {
-                        const assignment = assignments.find(a => a.collaboratorId === collab.id);
-                        const tx = clientTransactions.find(t => t.id === assignment?.transactionId);
-                        
-                        return (
-                          <div key={collab.id} className="flex items-start justify-between group bg-slate-50/30 p-3 rounded-[20px] hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
-                            <div className="flex items-start gap-4">
-                              <div className="relative">
-                                <Avatar className="h-12 w-12 ring-2 ring-white shadow-md">
-                                  <AvatarImage src={collab.avatar} />
-                                  <AvatarFallback className="bg-[#F5F5FF] text-[#5A5FF2] font-bold text-[14px]">
-                                    {collab.name.substring(0, 2)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm border border-slate-100">
-                                  {assignment?.assignmentType === 'client' ? (
-                                    <Shield className="size-2.5 text-[#5A5FF2]" />
-                                  ) : (
-                                    <Home className="size-2.5 text-slate-400" />
-                                  )}
-                                </div>
-                              </div>
-                              
-                              <div className="flex flex-col">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[15px] font-bold text-[#171717]">{collab.name}</span>
-                                  <Badge className="bg-[#5A5FF2] text-white hover:bg-[#5A5FF2] border-none text-[10px] h-5 px-2 font-bold tracking-tight rounded-[6px]">
-                                    {collab.role?.toUpperCase() || "AGENT"}
-                                  </Badge>
-                                </div>
-                                
-                                {collab.status === 'invited' ? (
-                                  <div className="flex items-center gap-2 mt-1.5 whitespace-nowrap">
-                                    <Badge className="bg-[#FFF8E6] text-[#D97706] hover:bg-[#FFF8E6] border-none text-[9px] h-4.5 px-1.5 font-bold uppercase tracking-wider flex items-center gap-1 shrink-0">
-                                      <Clock className="size-2.5" />
-                                      Invited
-                                    </Badge>
-                                    <div className="text-[11px] text-[#A3A3A3] font-bold bg-white px-2 py-0.5 rounded-full border border-slate-100 shrink-0">
-                                      EXP 7D
-                                    </div>
-                                    <Button variant="link" className="text-[11px] font-extrabold text-[#5A5FF2] h-auto p-0 hover:no-underline shrink-0 group/btn">
-                                      Resend Link
-                                      <ChevronRight className="size-3 transition-transform group-hover/btn:translate-x-0.5" />
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <div className="flex items-center gap-2 mt-1.5">
-                                    {assignment?.assignmentType === 'transaction' && tx ? (
-                                      <Badge variant="secondary" className="bg-white border-slate-100 text-[#737373] text-[10px] font-bold h-6 flex items-center gap-1.5 px-2.5 shadow-sm">
-                                        <Home className="size-3 text-slate-400" />
-                                        {tx.address.split(',')[0]}
-                                      </Badge>
-                                    ) : (
-                                      <Badge variant="secondary" className="bg-[#5A5FF2]/5 border-[#5A5FF2]/10 text-[#5A5FF2] text-[10px] font-bold h-6 flex items-center gap-1.5 px-2.5 shadow-sm">
-                                        <User className="size-3" />
-                                        Client Level Access
-                                      </Badge>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+                  {isCollabExpanded && (
+                    <div className="pt-2">
+                      {assignedCollabs.length > 0 ? (
+                        <div className="space-y-4 py-4">
+                          {assignedCollabs.map((collab) => {
+                            const assignment = assignments.find(a => a.collaboratorId === collab.id);
+                            const tx = clientTransactions.find(t => t.id === assignment?.transactionId);
                             
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[#AEAEAE] hover:text-[#5a5ff2] rounded-full">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="rounded-[16px] border-slate-200 shadow-xl min-w-[160px] p-1.5 z-[9999]">
-                                <DropdownMenuItem className="rounded-lg h-10 font-bold text-[13px] gap-2 cursor-pointer transition-colors">
-                                  <UserCheck className="size-4 text-[#5A5FF2]" />
-                                  View Profile
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg h-10 font-bold text-[13px] gap-2 cursor-pointer transition-colors">
-                                  <Mail className="size-4 text-slate-400" />
-                                  Send Message
-                                </DropdownMenuItem>
-                                <Separator className="my-1 bg-slate-100" />
-                                <DropdownMenuItem className="rounded-lg h-10 font-bold text-[13px] gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 cursor-pointer transition-colors">
-                                  <Trash2 className="size-4" />
-                                  Remove Access
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        );
-                      })}
-                      <Button 
-                        variant="ghost" 
-                        className="text-[#5a5ff2] text-[14px] font-bold h-auto p-0 hover:bg-transparent hover:underline mt-2 flex items-center gap-1"
-                        onClick={() => openAssignModal('client')}
-                      >
-                        <Plus className="size-4" /> Add collaborator
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8">
-                      <p className="text-[#9ca3af] text-[14px] text-center mb-3">No connected collaborators</p>
-                      <Button 
-                        variant="outline" 
-                        className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
-                        onClick={() => openAssignModal('client')}
-                      >
-                        + Add collaborator
-                      </Button>
+                            return (
+                              <CollaboratorCard 
+                                key={collab.id}
+                                collaborator={collab}
+                                assignmentType={assignment?.assignmentType}
+                                transaction={tx}
+                                onResendInvite={() => {
+                                  toast.success("Invitation successful", {
+                                    description: `Link sent to ${collab.email}.`,
+                                  });
+                                }}
+                                onChat={() => {
+                                  toast.info(`Opening chat with ${collab.name}...`);
+                                }}
+                                onRemoveAccess={() => {
+                                   setAssignments(prev => prev.filter(a => a.collaboratorId !== collab.id));
+                                   toast.info("Collaborator access removed.");
+                                }}
+                              />
+                            );
+                          })}
+                          <Button 
+                            variant="ghost" 
+                            className="text-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-transparent font-black text-[14px] flex items-center gap-1.5 p-0 h-9 mt-2 bg-transparent transition-all group"
+                            onClick={() => {
+                              setModalDefaultType('client');
+                              setIsAssignModalOpen(true);
+                            }}
+                          >
+                            <Plus className="size-4" />
+                            Collaborator
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8">
+                          <p className="text-[#9ca3af] text-[14px] text-center mb-3">No connected collaborators</p>
+                          <Button 
+                            variant="outline" 
+                            className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
+                            onClick={() => openAssignModal('client')}
+                          >
+                            + Collaborator
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
