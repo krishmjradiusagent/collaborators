@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 import { AssignCollaboratorModal } from './AssignCollaboratorModal';
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
 import { CollaboratorCard } from './CollaboratorCard';
+import { useRole } from '@/contexts/RoleContext';
 
 interface ClientDetailSidePanelProps {
   client: Client;
@@ -51,10 +52,13 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   initialCollabExpanded = true,
   initialTab = 'Activity'
 }) => {
+  const { role, activeTeam } = useRole();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isCollabExpanded, setIsCollabExpanded] = useState(initialCollabExpanded);
+
+  const isCollaborator = ['TC/VA', 'Lender', 'Vendor'].includes(role);
   const [modalDefaultType, setModalDefaultType] = useState<'client' | 'transaction'>('client');
   const [modalDefaultTxId, setModalDefaultTxId] = useState<string | undefined>(undefined);
   const [assignments, setAssignments] = useState<ClientAssignment[]>(
@@ -74,7 +78,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     assignments.some(a => a.collaboratorId === c.id)
   );
 
-  const handleAssign = (collaboratorId: string, type: 'client' | 'transaction', transactionId?: string) => {
+  const handleAssign = (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => {
     // Union Logic: Client-level access supersedes transaction-level access.
     const isAlreadyAtClient = assignments.some(a => a.collaboratorId === collaboratorId && a.assignmentType === 'client');
     
@@ -102,25 +106,25 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
         return;
       }
       
-      const exists = assignments.find(a => 
-        a.collaboratorId === collaboratorId && a.assignmentType === 'transaction' && a.transactionId === transactionId
-      );
+      if (!transactionIds || transactionIds.length === 0) return;
 
-      if (exists) {
-        toast.error("Collaborator already assigned here.");
+      const newAssignments: ClientAssignment[] = transactionIds
+        .filter(tId => !assignments.some(a => a.collaboratorId === collaboratorId && a.assignmentType === 'transaction' && a.transactionId === tId))
+        .map(tId => ({
+          id: `a${Date.now()}-${tId}`,
+          clientId: client.id,
+          collaboratorId,
+          assignmentType: 'transaction',
+          transactionId: tId,
+          assignedAt: new Date().toISOString()
+        }));
+
+      if (newAssignments.length === 0) {
+        toast.error("Collaborator already assigned to selected transactions.");
         return;
       }
 
-      const newAssignment: ClientAssignment = {
-        id: `a${Date.now()}`,
-        clientId: client.id,
-        collaboratorId,
-        assignmentType: 'transaction',
-        transactionId,
-        assignedAt: new Date().toISOString()
-      };
-
-      setAssignments(prev => [...prev, newAssignment]);
+      setAssignments(prev => [...prev, ...newAssignments]);
     }
   };
 
@@ -133,7 +137,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   const tabs = [
     'Activity',
     'Searches',
-    'Property recommendations',
+    ...(!isCollaborator ? ['Property recommendations'] : []),
     'Transactions',
     'Notes',
     'Reminders'
@@ -235,17 +239,20 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
 
               {/* Accordion Sections with Integrated Logic */}
               <div className="w-full space-y-3">
-                <div className="flex items-center justify-between w-full h-[32px]">
-                  <span className="text-[#111827] text-[14px] font-semibold">AI Prospecting</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[#5a5ff2] text-[14px] font-medium cursor-pointer hover:underline">Edit</span>
-                    <div className="w-[38px] h-[22px] bg-[#e5e5e5] rounded-full relative cursor-pointer">
-                      <div className="absolute left-[3px] top-[3px] size-4 bg-white rounded-full transition-all" />
+                {!isCollaborator && (
+                  <>
+                    <div className="flex items-center justify-between w-full h-[32px]">
+                      <span className="text-[#111827] text-[14px] font-semibold">AI Prospecting</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#5a5ff2] text-[14px] font-medium cursor-pointer hover:underline">Edit</span>
+                        <div className="w-[38px] h-[22px] bg-[#e5e5e5] rounded-full relative cursor-pointer">
+                          <div className="absolute left-[3px] top-[3px] size-4 bg-white rounded-full transition-all" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <Separator className="bg-[#e5e5e5]" />
+                    <Separator className="bg-[#e5e5e5]" />
+                  </>
+                )}
 
                 <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
                   <span className="text-[#111827] text-[14px] font-semibold">Additional Details</span>
@@ -285,15 +292,17 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openAssignModal('client');
-                        }}
-                      >
-                        <Plus className="size-3 text-[#5a5ff2]" />
-                      </div>
+                      {!isCollaborator && (
+                        <div 
+                          className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAssignModal('client');
+                          }}
+                        >
+                          <Plus className="size-3 text-[#5a5ff2]" />
+                        </div>
+                      )}
                       {isCollabExpanded ? (
                         <ChevronDown className="size-5 text-[#111827]" />
                       ) : (
@@ -331,28 +340,32 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                               />
                             );
                           })}
-                          <Button 
-                            variant="ghost" 
-                            className="text-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-transparent font-black text-[14px] flex items-center gap-1.5 p-0 h-9 mt-2 bg-transparent transition-all group"
-                            onClick={() => {
-                              setModalDefaultType('client');
-                              setIsAssignModalOpen(true);
-                            }}
-                          >
-                            <Plus className="size-4" />
-                            Collaborator
-                          </Button>
+                          {!isCollaborator && (
+                            <Button 
+                              variant="ghost" 
+                              className="text-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-transparent font-black text-[14px] flex items-center gap-1.5 p-0 h-9 mt-2 bg-transparent transition-all group"
+                              onClick={() => {
+                                setModalDefaultType('client');
+                                setIsAssignModalOpen(true);
+                              }}
+                            >
+                              <Plus className="size-4" />
+                              Collaborator
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-8">
                           <p className="text-[#9ca3af] text-[14px] text-center mb-3">No connected collaborators</p>
-                          <Button 
-                            variant="outline" 
-                            className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
-                            onClick={() => openAssignModal('client')}
-                          >
-                            + Collaborator
-                          </Button>
+                          {!isCollaborator && (
+                            <Button 
+                              variant="outline" 
+                              className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
+                              onClick={() => openAssignModal('client')}
+                            >
+                              + Collaborator
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>

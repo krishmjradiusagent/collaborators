@@ -28,7 +28,8 @@ import { Avatar, AvatarImage, AvatarFallback } from "../../../components/ui/Avat
 import { Separator } from "../../../components/ui/Separator"
 import { Client, Collaborator } from "../types"
 import { GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS } from "../mockData"
-import { CollaboratorAssignmentModal } from "./CollaboratorAssignmentModal"
+import { CollaboratorAssignmentModal } from "@/modules/Clients/components/CollaboratorAssignmentModal"
+import { useRole } from "@/contexts/RoleContext"
 
 interface ClientProfilePageProps {
   client: Client
@@ -36,6 +37,9 @@ interface ClientProfilePageProps {
 }
 
 export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
+  const { role } = useRole()
+  const isCollaborator = ['TC/VA', 'Lender', 'Vendor'].includes(role)
+  
   const [activeTab, setActiveTab] = React.useState("Searches")
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
   const [assignments, setAssignments] = React.useState(MOCK_ASSIGNMENTS)
@@ -45,7 +49,7 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
     clientAssignments.some(a => a.collaboratorId === c.id)
   )
 
-  const tabs = ["Activity", "Searches", "Transactions", "Notes", "Reminders", "Property recommendations"]
+  const tabs = ["Activity", "Searches", "Transactions", "Notes", "Reminders", ...(!isCollaborator ? ["Property recommendations"] : [])]
 
   const stats = [
     { label: "Email", value: client.email, sub: "+2 emails", icon: Mail },
@@ -152,22 +156,24 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
          </div>
 
          {/* AI Toggle Bar */}
-         <div className="mt-8 p-5 bg-[#5A5FF2]/5 rounded-[24px] border border-[#5A5FF2]/10 flex items-center justify-between group hover:border-[#5A5FF2]/40 hover:bg-[#5A5FF2]/10 transition-all cursor-pointer shadow-sm mx-0.5">
-            <div className="flex items-center gap-4">
-               <div className="size-11 rounded-2xl bg-white shadow-radius-nav flex items-center justify-center text-[#5A5FF2] group-hover:scale-110 transition-transform">
-                  <Send className="h-5 w-5 rotate-[-45deg] scale-x-[-1] fill-[#5A5FF2]/5 stroke-[#5A5FF2] stroke-[2px]" />
-               </div>
-               <div className="flex flex-col">
-                  <span className="font-black text-[16px] text-slate-900 tracking-tight">AI Prospecting</span>
-                  <span className="text-[12px] text-slate-400 font-medium">Automatic lead matching and smart outreach</span>
-               </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-11 h-6 bg-[#5A5FF2] rounded-full relative shadow-inner overflow-hidden border-2 border-[#5A5FF2]">
-                 <div className="absolute right-0.5 top-0.5 w-[16px] h-[16px] bg-white rounded-full shadow-lg transition-all" />
+         {!isCollaborator && (
+           <div className="mt-8 p-5 bg-[#5A5FF2]/5 rounded-[24px] border border-[#5A5FF2]/10 flex items-center justify-between group hover:border-[#5A5FF2]/40 hover:bg-[#5A5FF2]/10 transition-all cursor-pointer shadow-sm mx-0.5">
+              <div className="flex items-center gap-4">
+                 <div className="size-11 rounded-2xl bg-white shadow-radius-nav flex items-center justify-center text-[#5A5FF2] group-hover:scale-110 transition-transform">
+                    <Send className="h-5 w-5 rotate-[-45deg] scale-x-[-1] fill-[#5A5FF2]/5 stroke-[#5A5FF2] stroke-[2px]" />
+                 </div>
+                 <div className="flex flex-col">
+                    <span className="font-black text-[16px] text-slate-900 tracking-tight">AI Prospecting</span>
+                    <span className="text-[12px] text-slate-400 font-medium">Automatic lead matching and smart outreach</span>
+                 </div>
               </div>
-            </div>
-         </div>
+              <div className="flex items-center gap-4">
+                <div className="w-11 h-6 bg-[#5A5FF2] rounded-full relative shadow-inner overflow-hidden border-2 border-[#5A5FF2]">
+                   <div className="absolute right-0.5 top-0.5 w-[16px] h-[16px] bg-white rounded-full shadow-lg transition-all" />
+                </div>
+              </div>
+           </div>
+         )}
          
          {/* Accordions */}
          <div className="flex flex-col mt-8 gap-px bg-slate-50 border border-slate-100 rounded-[24px] overflow-hidden shadow-sm">
@@ -205,12 +211,14 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
                   {assignedCollabs.length > 0 && <Badge className="bg-[#5A5FF2] h-6 w-6 p-0 flex items-center justify-center text-[11px] rounded-full font-black shadow-lg shadow-[#5A5FF2]/20 animate-in zoom-in duration-500">{assignedCollabs.length}</Badge>}
                </div>
                <div className="flex items-center gap-4">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); setIsAssignModalOpen(true); }}
-                    className="size-8 rounded-full border-2 border-[#5A5FF2]/20 bg-white flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white hover:border-[#5A5FF2] transition-all shadow-sm active:scale-95 group-hover:scale-105"
-                  >
-                    <Plus className="h-4 w-4 stroke-[3px]" />
-                  </button>
+                  {!isCollaborator && (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setIsAssignModalOpen(true); }}
+                      className="size-8 rounded-full border-2 border-[#5A5FF2]/20 bg-white flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white hover:border-[#5A5FF2] transition-all shadow-sm active:scale-95 group-hover:scale-105"
+                    >
+                      <Plus className="h-4 w-4 stroke-[3px]" />
+                    </button>
+                  )}
                   <ChevronDown className="h-6 w-6 text-slate-300 transition-transform duration-500 group-hover:translate-y-0.5" />
                </div>
             </div>
@@ -228,12 +236,14 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
                        <p className="text-slate-900 font-black text-[18px] tracking-tight">No connected clients</p>
                        <p className="text-slate-400 text-[14px] font-medium max-w-[240px]">Start by assigning a collaborator to manage this relationship effectively.</p>
                     </div>
-                    <button 
-                      onClick={() => setIsAssignModalOpen(true)}
-                      className="bg-[#5A5FF2] text-white px-8 py-3 rounded-[30px] font-bold text-[14px] shadow-lg shadow-[#5A5FF2]/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                    >
-                      <Plus className="h-4 w-4 stroke-[3px]" /> Add collaborator
-                    </button>
+                     {!isCollaborator && (
+                       <button 
+                         onClick={() => setIsAssignModalOpen(true)}
+                         className="bg-[#5A5FF2] text-white px-8 py-3 rounded-[30px] font-bold text-[14px] shadow-lg shadow-[#5A5FF2]/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                       >
+                         <Plus className="h-4 w-4 stroke-[3px]" /> Add collaborator
+                       </button>
+                     )}
                  </div>
                ) : (
                   <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50/10">
@@ -348,9 +358,11 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
                 <p className="text-[24px] font-black text-[#373758] tracking-tight animate-in fade-in slide-in-from-bottom-2">No {activeTab} yet</p>
                 <p className="text-slate-400 font-bold max-w-sm text-[16px] leading-relaxed">Activity and logs for this client will appear here once interactions begin.</p>
              </div>
-             <Button className="mt-4 bg-[#5A5FF2] text-white rounded-[30px] font-bold px-10 h-14 shadow-xl shadow-[#5A5FF2]/20 hover:scale-105 transition-all relative z-10">
-                Add New {activeTab.slice(0, -1)}
-             </Button>
+              {!isCollaborator && (
+                <Button className="mt-4 bg-[#5A5FF2] text-white rounded-[30px] font-bold px-10 h-14 shadow-xl shadow-[#5A5FF2]/20 hover:scale-105 transition-all relative z-10">
+                   Add New {activeTab.slice(0, -1)}
+                </Button>
+              )}
          </div>
       </div>
 

@@ -1,12 +1,13 @@
 import * as React from "react"
+import { RoleProvider } from "./contexts/RoleContext"
+import { RoleSwitcher } from "./components/RoleSwitcher"
 import { Layout } from "./components/Layout"
 import { TeamSettingsContent } from "./modules/TeamSettings/TeamSettingsContent"
 import { ClientListPage } from "./modules/Clients/components/ClientListPage"
-import { ClientProfilePage } from "./modules/Clients/components/ClientProfilePage"
 import { Client } from "./modules/Clients/types"
 import { TransactionsPage } from "./modules/Transactions/components/TransactionsPage"
 
-function App() {
+function AppContent() {
   const [activeTab, setActiveTab] = React.useState("Team settings")
   const [selectedClient, setSelectedClient] = React.useState<Client | null>(null)
 
@@ -26,17 +27,16 @@ function App() {
   const renderContent = () => {
     if (selectedClient) {
       return (
-        <ClientProfilePage 
-          client={selectedClient} 
-          onBack={() => setSelectedClient(null)} 
-        />
+        <div key="client-profile">
+          <ClientListPage onSelectClient={setSelectedClient} />
+        </div>
       )
     }
 
     switch (activeTab) {
       case "Clients":
-        return <ClientListPage />
-      case "Documents":
+        return <ClientListPage onSelectClient={setSelectedClient} />
+      case "Transactions":
         return <TransactionsPage />
       case "Team settings":
       case "Team":
@@ -59,6 +59,15 @@ function App() {
         {renderContent()}
       </div>
     </Layout>
+  )
+}
+
+function App() {
+  return (
+    <RoleProvider>
+      <AppContent />
+      <RoleSwitcher />
+    </RoleProvider>
   )
 }
 
