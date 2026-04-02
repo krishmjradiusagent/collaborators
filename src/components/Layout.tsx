@@ -26,10 +26,10 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
   ]
 
   const sidebarItems = [
-    { icon: Settings, label: "Team" },
     { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
     { icon: Bell, label: "Security" },
+    { icon: Settings, label: "Team" },
   ]
 
   return (
