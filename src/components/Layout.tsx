@@ -26,11 +26,10 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
   ]
 
   const sidebarItems = [
-    { icon: Users, label: "Team" },
+    { icon: Settings, label: "Team" },
     { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
     { icon: Bell, label: "Security" },
-    { icon: Settings, label: "Settings" },
   ]
 
   return (
@@ -98,21 +97,39 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
               </svg>
            </div>
 
-          {sidebarItems.map((item, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveTab?.(item.label)}
-              className={cn(
-                "p-[10px] rounded-[12px] transition-all duration-300 size-[44px] flex items-center justify-center relative group",
-                activeTab === item.label ? "bg-[#EEF2FF] text-[#5A5FF2] shadow-[0_4px_12px_rgba(90,95,242,0.15)] ring-1 ring-[#5A5FF2]/20" : "text-[#4F7396] hover:bg-slate-50 hover:text-slate-900"
-              )}
-            >
-              <item.icon className={cn("h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110", activeTab === item.label ? "fill-[#5A5FF2]/10" : "")} />
-              {activeTab === item.label && (
-                <div className="absolute left-0 w-1 h-6 bg-[#5A5FF2] rounded-r-full -ml-[1px]" />
-              )}
-            </button>
-          ))}
+          <div className="flex flex-col items-center gap-6 w-full">
+            {sidebarItems.map((item, i) => (
+              <button
+                key={i}
+                onClick={() => setActiveTab?.(item.label)}
+                className={cn(
+                  "p-[10px] rounded-[12px] transition-all duration-300 size-[44px] flex items-center justify-center relative group",
+                  activeTab === item.label ? "bg-[#EEF2FF] text-[#5A5FF2] shadow-[0_4px_12px_rgba(90,95,242,0.15)] ring-1 ring-[#5A5FF2]/20" : "text-[#4F7396] hover:bg-slate-50 hover:text-slate-900"
+                )}
+              >
+                <item.icon className={cn("h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110", activeTab === item.label ? "fill-[#5A5FF2]/10" : "")} />
+                {activeTab === item.label && (
+                  <div className="absolute left-0 w-1 h-6 bg-[#5A5FF2] rounded-r-full -ml-[1px]" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Bottom Settings Icon - Moved to end of side panel */}
+          <div className="mt-auto flex flex-col items-center gap-6 pb-4">
+             <button
+                onClick={() => setActiveTab?.("Settings")}
+                className={cn(
+                  "p-[10px] rounded-[12px] transition-all duration-300 size-[44px] flex items-center justify-center relative group",
+                  activeTab === "Settings" ? "bg-[#EEF2FF] text-[#5A5FF2] shadow-[0_4px_12px_rgba(90,95,242,0.15)] ring-1 ring-[#5A5FF2]/20" : "text-[#4F7396] hover:bg-slate-50 hover:text-slate-900"
+                )}
+             >
+                <Settings className={cn("h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110", activeTab === "Settings" ? "fill-[#5A5FF2]/10" : "")} />
+                {activeTab === "Settings" && (
+                  <div className="absolute left-0 w-1 h-6 bg-[#5A5FF2] rounded-r-full -ml-[1px]" />
+                )}
+             </button>
+          </div>
         </aside>
 
         {/* Main Content Area - Total Screen Width, Flush with Sidebar */}

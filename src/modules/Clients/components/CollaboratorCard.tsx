@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "../../../components/ui/DropdownMenu"
 import { Separator } from "../../../components/ui/Separator"
+import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
 import { Collaborator, Transaction } from "../types"
 
 interface CollaboratorCardProps {
@@ -64,9 +65,7 @@ export function CollaboratorCard({
         
         <div className="flex items-center gap-2 min-w-0">
           <span className="font-black text-[#373758] text-[15px] tracking-tight truncate">{collaborator.name}</span>
-          <Badge className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/15 border-none text-[9px] h-4.5 px-2 font-black tracking-widest rounded-full uppercase shrink-0">
-            {collaborator.role}
-          </Badge>
+          <TypeBadge type={collaborator.type} className="h-4.5 px-2 font-black tracking-widest rounded-full uppercase shrink-0" />
         </div>
       </div>
 
