@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Check, Loader2, UserPlus, Sparkles, Calendar, ChevronDown, User, Home } from "lucide-react"
+import { Check, Loader2, UserPlus, ChevronDown, User, Home } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { toast } from "sonner"
 
@@ -24,7 +24,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { RadioGroup } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/Separator"
 import { Collaborator, Transaction } from "../types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
@@ -32,7 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
 interface AssignCollaboratorModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAssign: (collaboratorId: string, type: 'client' | 'transaction', transactionId?: string) => void
+  onAssign: (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => void
   onOpenInvite: () => void
   globalPool: Collaborator[]
   transactions?: Transaction[]
@@ -56,15 +55,16 @@ export function AssignCollaboratorModal({
 }: AssignCollaboratorModalProps) {
   const [selectedCollabId, setSelectedCollabId] = React.useState<string | null>(null)
   const [assignmentType, setAssignmentType] = React.useState<'client' | 'transaction'>(defaultType)
-  const [selectedTransactionId, setSelectedTransactionId] = React.useState<string | null>(defaultTransactionId || null)
+  const [selectedTransactionIds, setSelectedTransactionIds] = React.useState<string[]>(defaultTransactionId ? [defaultTransactionId] : [])
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
+  const [isTxPopoverOpen, setIsTxPopoverOpen] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Sync with props when modal opens
   React.useEffect(() => {
     if (open) {
       setAssignmentType(defaultType)
-      setSelectedTransactionId(defaultTransactionId || null)
+      setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
     }
   }, [open, defaultType, defaultTransactionId])
 
@@ -76,7 +76,7 @@ export function AssignCollaboratorModal({
     setIsSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 800))
     
-    onAssign(selectedCollabId, assignmentType, selectedTransactionId || undefined)
+    onAssign(selectedCollabId, assignmentType, selectedTransactionIds.length > 0 ? selectedTransactionIds : undefined)
     
     toast.success("Assignment Confirmed", {
       description: `${selectedCollab?.name} assigned to ${clientName} at ${assignmentType === 'transaction' ? 'Transaction' : 'Client'} Level.`,
@@ -92,7 +92,7 @@ export function AssignCollaboratorModal({
   const reset = () => {
     setSelectedCollabId(null)
     setAssignmentType(defaultType)
-    setSelectedTransactionId(defaultTransactionId || null)
+    setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
   }
 
   return (
@@ -286,53 +286,84 @@ export function AssignCollaboratorModal({
 
             {/* Transaction Selection Dropdown (Only if Transaction Level) */}
             {assignmentType === 'transaction' && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                <label className="text-[12px] font-bold text-[#737373] tracking-widest uppercase">SELECT TRANSACTION</label>
-                <RadioGroup 
-                  value={selectedTransactionId || ''} 
-                  onValueChange={setSelectedTransactionId}
-                  className="grid gap-2.5"
-                >
-                  {transactions.map((tx) => (
-                    <div 
-                      key={tx.id}
-                      onClick={() => setSelectedTransactionId(tx.id)}
+              <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                <label className="text-[12px] font-bold text-[#737373] tracking-widest uppercase">SELECT TRANSACTIONS</label>
+                
+                <Popover open={isTxPopoverOpen} onOpenChange={setIsTxPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
                       className={cn(
-                        "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer group",
-                        selectedTransactionId === tx.id 
-                          ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-sm" 
-                          : "border-slate-100 bg-white hover:border-slate-200"
+                        "w-full h-14 justify-between bg-[#F8FAFC] border-[#E2E8F0] hover:bg-[#F1F5F9] rounded-[16px] px-4 font-medium transition-all group",
+                        selectedTransactionIds.length === 0 && "text-slate-500"
                       )}
                     >
-                      <div className="p-2.5 bg-slate-50 rounded-xl group-hover:bg-white transition-colors shrink-0">
-                        <Home className={cn("size-5", selectedTransactionId === tx.id ? "text-[#5A5FF2]" : "text-slate-400")} />
-                      </div>
-                      
-                      <div className="flex flex-1 items-center justify-between min-w-0 gap-3">
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[15px] font-bold text-[#171717] truncate leading-tight">{tx.address}</span>
-                          <span className="text-[11px] text-slate-400 font-medium whitespace-nowrap mt-0.5">Active Transaction</span>
+                      {selectedTransactionIds.length > 0 ? (
+                        <div className="flex items-center gap-2 overflow-hidden">
+                          <div className="p-1.5 bg-[#5A5FF2]/10 rounded-lg shrink-0">
+                            <Home className="size-4 text-[#5A5FF2]" />
+                          </div>
+                          <span className="text-slate-900 truncate max-w-[200px] font-bold text-[14px]">
+                            {transactions.find(t => t.id === selectedTransactionIds[0])?.address}
+                          </span>
+                          {selectedTransactionIds.length > 1 && (
+                            <span className="text-[12px] font-bold text-[#5A5FF2] bg-[#5A5FF2]/5 px-2 py-0.5 rounded-full shrink-0">
+                              + {selectedTransactionIds.length - 1} others
+                            </span>
+                          )}
                         </div>
-                        <Badge className="bg-[#EEFDF6] text-[#10B981] border-none font-bold text-[9px] px-2 h-5 uppercase whitespace-nowrap shrink-0 tracking-wider">
-                          {tx.status}
-                        </Badge>
-                      </div>
-
-                      <div className={cn(
-                        "size-[18px] rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0",
-                        selectedTransactionId === tx.id ? "border-[#5A5FF2] bg-[#5A5FF2]" : "border-slate-200"
-                      )}>
-                        {selectedTransactionId === tx.id && <div className="size-1.5 rounded-full bg-white shadow-sm" />}
-                      </div>
-                    </div>
-                  ))}
-                  {transactions.length === 0 && (
-                    <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[28px] text-center">
-                      <p className="text-sm text-slate-500 font-medium">No active transactions found for this client.</p>
-                      <Button variant="link" className="text-[#5A5FF2] font-bold p-0 h-auto mt-1">Create new transaction</Button>
-                    </div>
-                  )}
-                </RadioGroup>
+                      ) : (
+                        "Select one or more transactions..."
+                      )}
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[436px] p-0 rounded-[24px] shadow-[0px_10px_40px_rgba(0,0,0,0.15)] border-[#E2E8F0] overflow-hidden z-[9999]">
+                    <Command className="border-none">
+                      <CommandInput 
+                        placeholder="Search by address or status..." 
+                        className="h-12 border-none ring-0 focus:ring-0 text-[14px]"
+                      />
+                      <CommandList className="max-h-[300px]">
+                        <CommandEmpty className="py-8 text-center text-sm text-slate-500">No transactions found.</CommandEmpty>
+                        <CommandGroup heading="Active Transactions" className="p-2">
+                          {transactions.map((tx) => (
+                            <CommandItem
+                              key={tx.id}
+                              onSelect={() => {
+                                if (selectedTransactionIds.includes(tx.id)) {
+                                  setSelectedTransactionIds(prev => prev.filter(id => id !== tx.id));
+                                } else {
+                                  setSelectedTransactionIds(prev => [...prev, tx.id]);
+                                }
+                              }}
+                              className="flex items-center justify-between p-3 rounded-[12px] cursor-pointer hover:bg-slate-50 aria-selected:bg-[#5A5FF2]/5 transition-all group mb-1"
+                            >
+                              <div className="flex items-center gap-3 overflow-hidden">
+                                <div className={cn(
+                                  "p-2 rounded-lg transition-colors shrink-0",
+                                  selectedTransactionIds.includes(tx.id) ? "bg-[#5A5FF2]/10" : "bg-slate-50"
+                                )}>
+                                  <Home className={cn("size-4", selectedTransactionIds.includes(tx.id) ? "text-[#5A5FF2]" : "text-slate-400")} />
+                                </div>
+                                <div className="flex flex-col min-w-0">
+                                  <span className="text-[14px] font-bold text-[#171717] truncate">{tx.address}</span>
+                                  <span className="text-[11px] text-[#737373] font-medium">{tx.status}</span>
+                                </div>
+                              </div>
+                              <div className={cn(
+                                "size-5 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
+                                selectedTransactionIds.includes(tx.id) ? "bg-[#5A5FF2] border-[#5A5FF2] shadow-sm shadow-[#5A5FF2]/30" : "border-slate-200"
+                              )}>
+                                {selectedTransactionIds.includes(tx.id) && <Check className="size-3 text-white stroke-[3px]" />}
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
               </div>
             )}
           </div>
@@ -348,11 +379,11 @@ export function AssignCollaboratorModal({
             <Button
               className={cn(
                 "flex-[1.5] h-16 rounded-[24px] font-bold text-white transition-all shadow-xl",
-                (assignmentType === 'client' || selectedTransactionId) && selectedCollabId
+                (assignmentType === 'client' || selectedTransactionIds.length > 0) && selectedCollabId
                   ? "bg-[#5A5FF2] hover:bg-[#4a4ed2] shadow-[#5A5FF2]/20 hover:translate-y-[-2px]" 
                   : "bg-slate-200 cursor-not-allowed shadow-none"
               )}
-              disabled={!selectedCollabId || (assignmentType === 'transaction' && !selectedTransactionId) || isSubmitting}
+              disabled={!selectedCollabId || (assignmentType === 'transaction' && selectedTransactionIds.length === 0) || isSubmitting}
               onClick={handleAssign}
             >
               {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : "Confirm Assignment"}

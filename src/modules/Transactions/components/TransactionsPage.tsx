@@ -107,10 +107,14 @@ const mockTransactions: Transaction[] = [
 ];
 
 import { motion } from "framer-motion"
+import { CreateTransactionWizard } from "./CreateTransactionWizard"
+import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
 
 export function TransactionsPage() {
   const [activeTab, setActiveTab] = React.useState("All")
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
+  const [isCreateWizardOpen, setIsCreateWizardOpen] = React.useState(false)
+  const [isInviteModalOpen, setIsInviteModalOpen] = React.useState(false)
   const [isSidePanelOpen, setIsSidePanelOpen] = React.useState(false)
   const [isClientDetailOpen, setIsClientDetailOpen] = React.useState(false)
   const [selectedTxId, setSelectedTxId] = React.useState<string | undefined>()
@@ -160,6 +164,7 @@ export function TransactionsPage() {
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
           >
             <Button 
+              onClick={() => setIsCreateWizardOpen(true)}
               className="h-10 rounded-full bg-[#5A5FF2] border-[#5A5FF2] text-white hover:bg-[#4d52e0] hover:shadow-lg hover:shadow-[#5A5FF2]/30 transition-all shadow-md shadow-[#5A5FF2]/20 font-bold px-6 border-none"
             >
               <Plus className="size-4 stroke-[3px]" /> Transaction
@@ -453,6 +458,21 @@ export function TransactionsPage() {
         clientName="Transaction Portal"
         defaultType="transaction"
         defaultTransactionId={selectedTxId}
+      />
+      <CreateTransactionWizard 
+        open={isCreateWizardOpen}
+        onOpenChange={setIsCreateWizardOpen}
+      />
+
+      <InviteCollaboratorModal 
+        open={isInviteModalOpen}
+        onOpenChange={setIsInviteModalOpen}
+        onInviteSent={(data) => {
+          toast.success("Invitation Sent", {
+            description: `Collaborator ${data.firstName} ${data.lastName} invited.`
+          });
+        }}
+        existingEmails={INITIAL_COLLABORATORS.map(c => c.email)}
       />
     </div>
   )
