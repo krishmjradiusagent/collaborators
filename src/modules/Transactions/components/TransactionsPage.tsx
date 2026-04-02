@@ -123,7 +123,7 @@ export function TransactionsPage() {
   const [selectedClient, setSelectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
 
-  const { isCollaborator, selectedTransaction } = useRole()
+  const { isCollaborator, selectedTransaction, canInvite, canAssign } = useRole()
 
   const displayedTransactions = React.useMemo(() => {
     if (isCollaborator && selectedTransaction) {
@@ -170,18 +170,20 @@ export function TransactionsPage() {
       <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-[#EFEFEF]">
         <h1 className="text-[28px] font-bold text-[#111827]">My Transactions</h1>
         <div className="flex items-center gap-3">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <Button 
-              onClick={() => setIsCreateWizardOpen(true)}
-              className="h-10 rounded-full bg-[#5A5FF2] border-[#5A5FF2] text-white hover:bg-[#4d52e0] hover:shadow-lg hover:shadow-[#5A5FF2]/30 transition-all shadow-md shadow-[#5A5FF2]/20 font-bold px-6 border-none"
+          {!isCollaborator && (
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
-              <Plus className="size-4 stroke-[3px]" /> Transaction
-            </Button>
-          </motion.div>
+              <Button 
+                onClick={() => setIsCreateWizardOpen(true)}
+                className="h-10 rounded-full bg-[#5A5FF2] border-[#5A5FF2] text-white hover:bg-[#4d52e0] hover:shadow-lg hover:shadow-[#5A5FF2]/30 transition-all shadow-md shadow-[#5A5FF2]/20 font-bold px-6 border-none"
+              >
+                <Plus className="size-4 stroke-[3px]" /> Transaction
+              </Button>
+            </motion.div>
+          )}
           <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:bg-slate-50 relative">
             <Bell className="size-5" />
             <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white" />
@@ -364,16 +366,18 @@ export function TransactionsPage() {
                             ) : (
                               <div className="flex items-center gap-2 group/add">
                                  <span className="text-[10px] font-bold text-slate-300 tracking-widest">NONE</span>
-                                 <button 
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     setSelectedTxId(tx.id);
-                                     setIsAssignModalOpen(true);
-                                   }}
-                                   className="size-7 rounded-full border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 hover:border-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
-                                 >
-                                    <Plus className="size-4" />
-                                  </button>
+                                 {canAssign && (
+                                   <button 
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       setSelectedTxId(tx.id);
+                                       setIsAssignModalOpen(true);
+                                     }}
+                                     className="size-7 rounded-full border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 hover:border-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
+                                   >
+                                      <Plus className="size-4" />
+                                    </button>
+                                  )}
                               </div>
                             )}
                          </TableCell>
@@ -470,6 +474,7 @@ export function TransactionsPage() {
         clientName="Transaction Portal"
         defaultType="transaction"
         defaultTransactionId={selectedTxId}
+        canInvite={canInvite}
       />
       <CreateTransactionWizard 
         open={isCreateWizardOpen}

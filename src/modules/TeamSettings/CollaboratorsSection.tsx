@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRole } from "@/contexts/RoleContext";
 import { useCollaborators } from "./collaborators/hooks/useCollaborators";
 import { CollaboratorTable } from "./collaborators/components/CollaboratorTable";
 import { InviteCollaboratorModal } from "./collaborators/components/InviteCollaboratorModal";
@@ -38,9 +39,8 @@ export function CollaboratorsSection() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Collaborator | null>(null);
 
-  // Restricted to: Team Lead, Co-Team Lead, Operations, and Admin roles.
-  const userRole = "Team Lead"; // This would come from a real auth/user context
-  const hasAccess = ["Team Lead", "Co-Team Lead", "Operations", "Admin"].includes(userRole);
+  const { canAssign } = useRole();
+  const hasAccess = canAssign;
 
   if (!hasAccess) {
     return (

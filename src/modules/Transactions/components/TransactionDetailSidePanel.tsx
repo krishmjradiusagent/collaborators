@@ -27,6 +27,7 @@ import { AssignCollaboratorModal } from '../../Clients/components/AssignCollabor
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
 import { CollaboratorCard } from '../../Clients/components/CollaboratorCard';
 import { INITIAL_COLLABORATORS } from '../../TeamSettings/collaborators/mockData';
+import { useRole } from "@/contexts/RoleContext";
 
 interface TransactionDetailSidePanelProps {
   transaction: Transaction;
@@ -41,6 +42,7 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
   onClose,
   initialCollabExpanded = true
 }) => {
+  const { canInvite, canAssign } = useRole();
   const [activeTab, setActiveTab] = useState('Overview');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -164,15 +166,17 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                       )}
                     </div>
                     <div className="flex items-center gap-4">
-                      <div 
-                        className="h-9 px-4 rounded-full border border-[#5a5ff2] flex items-center gap-2 hover:bg-[#5a5ff2] hover:text-white text-[#5a5ff2] font-bold text-[13px] transition-all"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setIsAssignModalOpen(true);
-                        }}
-                      >
-                        <Plus className="size-4" /> Add
-                      </div>
+                      {canAssign && (
+                        <div 
+                          className="h-9 px-4 rounded-full border border-[#5a5ff2] flex items-center gap-2 hover:bg-[#5a5ff2] hover:text-white text-[#5a5ff2] font-bold text-[13px] transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsAssignModalOpen(true);
+                          }}
+                        >
+                          <Plus className="size-4" /> Add
+                        </div>
+                      )}
                       <div className={cn("transition-transform duration-300", isCollabExpanded ? "rotate-180" : "")}>
                          <ChevronDown className="size-6 text-[#111827]" />
                       </div>
@@ -190,10 +194,10 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                                assignmentType="transaction"
                                onResendInvite={() => toast.success("Invitation Resent")}
                                onChat={() => toast.info("Opening Chat...")}
-                               onRemoveAccess={() => {
+                               onRemoveAccess={canAssign ? () => {
                                  setAssignedCollabs(prev => prev.filter(c => c.id !== collab.id));
                                  toast.info("Access Removed");
-                               }}
+                               } : undefined}
                              />
                            ))}
                         </div>
@@ -201,12 +205,14 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                         <div className="flex flex-col items-center justify-center py-12 bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100">
                           <Users className="size-12 text-slate-200 mb-4" />
                           <p className="text-slate-400 font-bold text-[15px] mb-4">No team members assigned</p>
-                          <Button 
-                            className="rounded-full bg-[#5a5ff2] hover:bg-[#5055ff] text-white text-[14px] font-bold px-8 h-12 shadow-lg shadow-indigo-200"
-                            onClick={() => setIsAssignModalOpen(true)}
-                          >
-                            + Assign Collaborator
-                          </Button>
+                          {canAssign && (
+                            <Button 
+                              className="rounded-full bg-[#5a5ff2] hover:bg-[#5055ff] text-white text-[14px] font-bold px-8 h-12 shadow-lg shadow-indigo-200"
+                              onClick={() => setIsAssignModalOpen(true)}
+                            >
+                              + Assign Collaborator
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -317,7 +323,7 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
         }))}
         transactions={[{ id: transaction.id, address: transaction.address, status: transaction.status } as any]}
         clientName={transaction.clientName}
-        canInvite={true}
+        canInvite={canInvite}
         defaultType="transaction"
         defaultTransactionId={transaction.id}
       />

@@ -52,7 +52,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   initialCollabExpanded = true,
   initialTab = 'Activity'
 }) => {
-  const { isCollaborator, selectedTransaction } = useRole();
+  const { isCollaborator, selectedTransaction, canInvite, canAssign } = useRole();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -261,9 +261,11 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                 <div className="flex items-center justify-between w-full h-[32px] cursor-pointer">
                   <span className="text-[#111827] text-[14px] font-semibold">Family Members</span>
                   <div className="flex items-center gap-3">
-                     <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
-                       <Plus className="size-3 text-[#5a5ff2]" />
-                     </div>
+                     {canAssign && (
+                       <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
+                         <Plus className="size-3 text-[#5a5ff2]" />
+                       </div>
+                     )}
                      <ChevronRight className="size-5 text-[#111827]" />
                   </div>
                 </div>
@@ -282,15 +284,17 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openAssignModal('client');
-                        }}
-                      >
-                        <Plus className="size-3 text-[#5a5ff2]" />
-                      </div>
+                      {canAssign && (
+                        <div 
+                          className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openAssignModal('client');
+                          }}
+                        >
+                          <Plus className="size-3 text-[#5a5ff2]" />
+                        </div>
+                      )}
                       {isCollabExpanded ? (
                         <ChevronDown className="size-5 text-[#111827]" />
                       ) : (
@@ -321,35 +325,39 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                                 onChat={() => {
                                   toast.info(`Opening chat with ${collab.name}...`);
                                 }}
-                                onRemoveAccess={() => {
+                                onRemoveAccess={canAssign ? () => {
                                    setAssignments(prev => prev.filter(a => a.collaboratorId !== collab.id));
                                    toast.info("Collaborator access removed.");
-                                }}
+                                } : undefined}
                               />
                             );
                           })}
-                          <Button 
-                            variant="ghost" 
-                            className="text-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-transparent font-black text-[14px] flex items-center gap-1.5 p-0 h-9 mt-2 bg-transparent transition-all group"
-                            onClick={() => {
-                              setModalDefaultType('client');
-                              setIsAssignModalOpen(true);
-                            }}
-                          >
-                            <Plus className="size-4" />
-                            Collaborator
-                          </Button>
+                           {canAssign && (
+                            <Button 
+                              variant="ghost" 
+                              className="text-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-transparent font-black text-[14px] flex items-center gap-1.5 p-0 h-9 mt-2 bg-transparent transition-all group"
+                              onClick={() => {
+                                setModalDefaultType('client');
+                                setIsAssignModalOpen(true);
+                              }}
+                            >
+                              <Plus className="size-4" />
+                              Collaborator
+                            </Button>
+                          )}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center py-8">
                           <p className="text-[#9ca3af] text-[14px] text-center mb-3">No connected collaborators</p>
-                          <Button 
-                            variant="outline" 
-                            className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
-                            onClick={() => openAssignModal('client')}
-                          >
-                            + Collaborator
-                          </Button>
+                          {canAssign && (
+                            <Button 
+                              variant="outline" 
+                              className="rounded-full border-[#5a5ff2] text-[#5a5ff2] text-[13px] font-bold px-5 h-9 hover:bg-[#5a5ff2]/5"
+                              onClick={() => openAssignModal('client')}
+                            >
+                              + Collaborator
+                            </Button>
+                          )}
                         </div>
                       )}
                     </div>
@@ -497,13 +505,15 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                                   </button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-2 border-slate-100 shadow-xl bg-white z-[301]">
-                                  <DropdownMenuItem 
-                                    className="rounded-[10px] py-2.5 font-bold text-[#374151] flex items-center gap-2 cursor-pointer focus:bg-[#F5F3FF] focus:text-[#5A5FF2]"
-                                    onClick={() => openAssignModal('transaction', tx.id)}
-                                  >
-                                    <Plus className="size-4" />
-                                    Collaborator
-                                  </DropdownMenuItem>
+                                  {canAssign && (
+                                    <DropdownMenuItem 
+                                      className="rounded-[10px] py-2.5 font-bold text-[#374151] flex items-center gap-2 cursor-pointer focus:bg-[#F5F3FF] focus:text-[#5A5FF2]"
+                                      onClick={() => openAssignModal('transaction', tx.id)}
+                                    >
+                                      <Plus className="size-4" />
+                                      Collaborator
+                                    </DropdownMenuItem>
+                                  )}
                                   <DropdownMenuSeparator className="bg-slate-50 my-1" />
                                   <DropdownMenuItem className="rounded-[10px] py-2.5 font-medium text-slate-500 cursor-pointer">
                                     View Details
@@ -595,7 +605,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
         globalPool={collaborators}
         transactions={clientTransactions}
         clientName={client.name}
-        canInvite={true}
+        canInvite={canInvite}
         defaultType={modalDefaultType}
         defaultTransactionId={modalDefaultTxId}
       />

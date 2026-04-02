@@ -6,13 +6,9 @@ import {
   ChevronDown,
   Bell,
   Check,
-  Plus,
-  Upload,
-  Download,
 } from "lucide-react"
 import { useRole } from "../contexts/RoleContext"
 import { ContextSwitcher } from "./ContextSwitcher"
-import { Button } from "./ui/Button"
 
 import { cn } from "../lib/utils"
 
@@ -37,7 +33,7 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
     { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
     { icon: Bell, label: "Security" },
-    { icon: Settings, label: "Team" },
+    ...(!isCollaborator ? [{ icon: Settings, label: "Team" }] : []),
   ]
 
   return (
@@ -72,19 +68,7 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
         </div>
 
         <div className="flex items-center gap-10">
-          {!isCollaborator && (
-            <div className="flex items-center gap-3">
-              <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
-                <Plus className="h-4 w-4" /> Client
-              </Button>
-              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-                <Upload className="h-4 w-4" /> Import
-              </Button>
-              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-                <Download className="h-4 w-4" /> Export
-              </Button>
-            </div>
-          )}
+          {/* Management buttons removed as per request */}
 
           <div className="h-[70px] w-px bg-[#EFEFEF] ml-2" />
 

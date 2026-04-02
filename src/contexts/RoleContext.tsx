@@ -31,6 +31,8 @@ interface RoleContextType {
   selectedTransaction: TransactionContext | null
   setSelectedTransaction: (tx: TransactionContext | null) => void
   isCollaborator: boolean
+  canInvite: boolean
+  canAssign: boolean
 }
 
 const RoleContext = React.createContext<RoleContextType | undefined>(undefined)
@@ -53,6 +55,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [selectedTransaction, setSelectedTransaction] = React.useState<TransactionContext | null>(null)
 
   const isCollaborator = ['TC_VA', 'LENDER', 'VENDOR'].includes(currentRole)
+  const canInvite = ['TEAM_LEAD'].includes(currentRole)
+  const canAssign = ['TEAM_LEAD', 'AGENT'].includes(currentRole)
 
   return (
     <RoleContext.Provider value={{
@@ -64,7 +68,9 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       setSelectedAgent,
       selectedTransaction,
       setSelectedTransaction,
-      isCollaborator
+      isCollaborator,
+      canInvite,
+      canAssign
     }}>
       {children}
     </RoleContext.Provider>

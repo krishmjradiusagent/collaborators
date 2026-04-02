@@ -1,16 +1,17 @@
 import * as React from "react"
 import {
-  Plus,
-  Grid,
-  Upload,
-  Download,
-  Filter,
-  Bookmark,
-  MoreVertical,
-  ChevronDown,
-  Search,
-  Users
-} from "lucide-react"
+   Plus,
+   Settings,
+   Grid,
+   Upload,
+   Filter,
+   Bookmark,
+   MoreVertical,
+   ChevronRight,
+   ChevronDown,
+   Search,
+   Users
+ } from "lucide-react"
 import { Button } from "../../../components/ui/Button"
 import { Input } from "../../../components/ui/Input"
 import { Badge } from "../../../components/ui/Badge"
@@ -51,8 +52,7 @@ export function ClientListPage({ }: ClientListPageProps) {
   // Local state for instant updates
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
 
-  const { isCollaborator, currentRole } = useRole()
-  const userRole = currentRole 
+  const { isCollaborator, canInvite, canAssign } = useRole()
 
   const handleRowClick = (client: Client) => {
     setShouldExpandCollab(false) // Default: don't specific expand on row click
@@ -122,7 +122,7 @@ export function ClientListPage({ }: ClientListPageProps) {
             globalPool={GLOBAL_COLLABORATOR_POOL}
             transactions={MOCK_TRANSACTIONS.filter(tx => tx.clientId === clientForAssign.id)}
             clientName={clientForAssign.name}
-            canInvite={userRole === "TEAM_LEAD"}
+            canInvite={canInvite}
             defaultType="client"
           />
         )}
@@ -146,10 +146,10 @@ export function ClientListPage({ }: ClientListPageProps) {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" className="flex items-center gap-2 text-[#373758] font-bold border-[#EFEFEF] rounded-[10px] h-10">
-              Archived <ChevronDown className="h-4 w-4" />
+              Archived <ChevronRight className="h-4 w-4" />
             </Button>
             <Button variant="outline" className="flex items-center gap-2 text-[#373758] font-bold border-[#EFEFEF] rounded-[10px] h-10">
-              <Grid className="h-4 w-4" /> Integrations
+              <Settings className="h-4 w-4" /> Integrations
             </Button>
           {!isCollaborator && (
             <div className="flex items-center gap-3">
@@ -157,10 +157,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                 <Plus className="h-4 w-4" /> Client
               </Button>
               <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-                <Upload className="h-4 w-4" /> Import
-              </Button>
-              <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
-                <Download className="h-4 w-4" /> Export
+                <Upload className="h-4 w-4" /> Import CSV
               </Button>
             </div>
           )}
@@ -309,7 +306,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
                               None
                             </span>
-                            {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
+                            {canAssign && (
                               <button
                                 onClick={(e) => handleAddCollabClick(e, client)}
                                 className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -329,7 +326,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               </span>
                               <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
-                            {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
+                            {canAssign && (
                               <button
                                 onClick={(e) => handleAddCollabClick(e, client)}
                                 className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -356,7 +353,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                                 </span>
                                 <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                               </div>
-                              {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
+                              {canAssign && (
                                 <button
                                   onClick={(e) => handleAddCollabClick(e, client)}
                                   className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
@@ -384,7 +381,7 @@ export function ClientListPage({ }: ClientListPageProps) {
                               >
                                 {assignedCollabs.length - 1} more
                               </button>
-                              {(userRole === "TEAM_LEAD" || userRole === "AGENT") && (
+                              {canAssign && (
                                 <button
                                   onClick={(e) => handleAddCollabClick(e, client)}
                                   className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
