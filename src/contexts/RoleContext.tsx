@@ -1,6 +1,7 @@
 import * as React from "react"
 
 export type UserRole = 'TEAM_LEAD' | 'AGENT' | 'TC_VA' | 'LENDER' | 'VENDOR'
+export type AssignmentLevel = 'CLIENT' | 'TRANSACTION'
 
 export interface TeamContext {
   id: string
@@ -24,13 +25,17 @@ export interface TransactionContext {
 interface RoleContextType {
   currentRole: UserRole
   setCurrentRole: (role: UserRole) => void
+  assignmentLevel: AssignmentLevel
+  setAssignmentLevel: (level: AssignmentLevel) => void
   selectedTeam: TeamContext | null
   setSelectedTeam: (team: TeamContext | null) => void
   selectedAgent: AgentContext | null
   setSelectedAgent: (agent: AgentContext | null) => void
   selectedTransaction: TransactionContext | null
   setSelectedTransaction: (tx: TransactionContext | null) => void
-  isCollaborator: boolean
+  isCollaborator: boolean // Restricted collaborators (LENDER, VENDOR)
+  hasFullAccess: boolean // Roles with full access (TEAM_LEAD, AGENT, TC_VA)
+  canEdit: boolean
   canInvite: boolean
   canAssign: boolean
 }
@@ -50,11 +55,19 @@ export const MOCK_AGENTS: AgentContext[] = [
 
 export function RoleProvider({ children }: { children: React.ReactNode }) {
   const [currentRole, setCurrentRole] = React.useState<UserRole>('TEAM_LEAD')
+  const [assignmentLevel, setAssignmentLevel] = React.useState<AssignmentLevel>('CLIENT')
   const [selectedTeam, setSelectedTeam] = React.useState<TeamContext | null>(MOCK_TEAMS[0])
   const [selectedAgent, setSelectedAgent] = React.useState<AgentContext | null>(null)
   const [selectedTransaction, setSelectedTransaction] = React.useState<TransactionContext | null>(null)
 
+  // Roles that are considered 'Collaborators' (external/assigned)
   const isCollaborator = ['TC_VA', 'LENDER', 'VENDOR'].includes(currentRole)
+  
+  // Per user logic: Team Lead, Agent, TC, and VA have 'all access'
+  // Restricted roles: LENDER, VENDOR (Read-only on profile)
+  const hasFullAccess = ['TEAM_LEAD', 'AGENT', 'TC_VA'].includes(currentRole)
+  const canEdit = hasFullAccess;
+  
   const canInvite = ['TEAM_LEAD'].includes(currentRole)
   const canAssign = ['TEAM_LEAD', 'AGENT'].includes(currentRole)
 
@@ -62,6 +75,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
     <RoleContext.Provider value={{
       currentRole,
       setCurrentRole,
+      assignmentLevel,
+      setAssignmentLevel,
       selectedTeam,
       setSelectedTeam,
       selectedAgent,
@@ -69,6 +84,8 @@ export function RoleProvider({ children }: { children: React.ReactNode }) {
       selectedTransaction,
       setSelectedTransaction,
       isCollaborator,
+      hasFullAccess,
+      canEdit,
       canInvite,
       canAssign
     }}>

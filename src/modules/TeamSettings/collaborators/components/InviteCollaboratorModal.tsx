@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { 
-  Loader2, 
-  ShieldCheck, 
-  Users, 
-  Briefcase, 
-  UserPlus, 
+import {
+  Loader2,
+  ShieldCheck,
+  Users,
+  Briefcase,
+  UserPlus,
   CheckCircle2
 } from "lucide-react";
 import { toast } from "sonner";
@@ -114,8 +114,8 @@ export function InviteCollaboratorModal({
   const onSubmit = async (data: FormValues) => {
     // A. Backend Constraint Check: Skip if email exists in global team pool
     if (existingEmails.map(e => e.toLowerCase()).includes(data.email.toLowerCase())) {
-      form.setError("email", { 
-        message: "This email is already associated with a collaborator on your team." 
+      form.setError("email", {
+        message: "This email is already associated with a collaborator on your team."
       });
       toast.error("Duplicate Entry", {
         description: `${data.email} is already in your collaborator list.`
@@ -124,7 +124,7 @@ export function InviteCollaboratorModal({
     }
 
     setIsSubmitting(true);
-    
+
     // B. Execution Logic: "Send Secure Invitation"
     // In a real implementation, this would call a secure cloud function or API endpoint
     // to create the record and trigger the SendGrid/Postmark notification.
@@ -134,17 +134,17 @@ export function InviteCollaboratorModal({
       // 2. Implicit: Set status to "Invited", Expiration to 7 days
       // 3. Metadata: Capture team_id and current_user_id
       await new Promise((resolve) => setTimeout(resolve, 1200));
-      
+
       // Success Transition
       onInviteSent(data);
-      
+
       // UI Feedback: Shadcn Sonner Notification
       toast.success("Invitation successful", {
         description: `Link sent to ${data.email}. Access expires in 7 days.`,
         icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
         className: "bg-white border-emerald-100",
       });
-      
+
       // 3. UI State Transition
       setStep(1);
       form.reset();
@@ -176,35 +176,35 @@ export function InviteCollaboratorModal({
       }
       onOpenChange(val);
     }}>
-      <DialogContent 
-        className="sm:max-w-[550px] bg-white border-none text-slate-900 p-0 overflow-hidden shadow-2xl rounded-[40px] z-[9999]" 
+      <DialogContent
+        className="sm:max-w-[550px] bg-white border-none text-slate-900 p-0 overflow-hidden shadow-2xl rounded-[40px] z-[9999]"
         overlayClassName="z-[9999]"
       >
         <div className="p-12">
           <DialogHeader className="mb-10 text-left">
             <div className="mb-6 flex">
-               <div className={cn(
-                 "h-16 w-16 rounded-2xl flex items-center justify-center transition-colors duration-500",
-                 step === 1 ? "bg-blue-50 text-blue-600" : (TYPES.find(t => t.id === selectedType)?.bgColor || "bg-blue-50 text-blue-600")
-               )}>
-                 {step === 1 ? (
-                   <UserPlus className="h-8 w-8" />
-                 ) : (
-                   (() => {
-                     const TIcon = TYPES.find(t => t.id === selectedType)?.icon || UserPlus;
-                     return <TIcon className={cn("h-8 w-8", TYPES.find(t => t.id === selectedType)?.color)} />;
-                   })()
-                 )}
-               </div>
+              <div className={cn(
+                "h-16 w-16 rounded-2xl flex items-center justify-center transition-colors duration-500",
+                step === 1 ? "bg-blue-50 text-blue-600" : (TYPES.find(t => t.id === selectedType)?.bgColor || "bg-blue-50 text-blue-600")
+              )}>
+                {step === 1 ? (
+                  <UserPlus className="h-8 w-8" />
+                ) : (
+                  (() => {
+                    const TIcon = TYPES.find(t => t.id === selectedType)?.icon || UserPlus;
+                    return <TIcon className={cn("h-8 w-8", TYPES.find(t => t.id === selectedType)?.color)} />;
+                  })()
+                )}
+              </div>
             </div>
-            
+
             <DialogTitle className="text-3xl font-bold tracking-tight text-slate-900 leading-tight">
               {step === 1 ? "Add Collaborator to Network" : `Invite ${TYPES.find(t => t.id === selectedType)?.label}`}
             </DialogTitle>
-            
+
             <DialogDescription className="text-slate-500 font-medium text-[16px] mt-3">
-              {step === 1 
-                ? "Which role are you adding to your team network? You cannot change this later." 
+              {step === 1
+                ? "Which role are you adding to your team network? You cannot change this later."
                 : "Enter their professional details to send the secure access link."
               }
             </DialogDescription>
@@ -229,8 +229,8 @@ export function InviteCollaboratorModal({
                               key={type.id}
                               className={cn(
                                 "flex items-start gap-4 p-4 rounded-2xl border transition-all duration-300 relative group",
-                                field.value === type.id 
-                                  ? "border-blue-500 bg-white shadow-lg ring-1 ring-blue-500/20" 
+                                field.value === type.id
+                                  ? "border-blue-500 bg-white shadow-lg ring-1 ring-blue-500/20"
                                   : "border-slate-100 bg-slate-50/30 hover:border-slate-200 hover:bg-slate-50"
                               )}
                             >
@@ -268,11 +268,11 @@ export function InviteCollaboratorModal({
                           <Field>
                             <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 id="firstName"
-                                placeholder="e.g. Jane" 
+                                placeholder="e.g. Jane"
                                 className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                                {...formField} 
+                                {...formField}
                                 autoFocus
                               />
                             </FormControl>
@@ -289,11 +289,11 @@ export function InviteCollaboratorModal({
                           <Field>
                             <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
                             <FormControl>
-                              <Input 
+                              <Input
                                 id="lastName"
-                                placeholder="e.g. Cooper" 
+                                placeholder="e.g. Cooper"
                                 className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                                {...formField} 
+                                {...formField}
                               />
                             </FormControl>
                             <FormMessage className="text-red-500 font-bold text-[10px] uppercase tracking-widest pl-1" />
@@ -311,11 +311,11 @@ export function InviteCollaboratorModal({
                         <Field>
                           <FieldLabel htmlFor="email">Business Email</FieldLabel>
                           <FormControl>
-                            <Input 
+                            <Input
                               id="email"
-                              placeholder="jane@radiusagent.com" 
+                              placeholder="jane@radiusagent.com"
                               className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                              {...formField} 
+                              {...formField}
                             />
                           </FormControl>
                           <FormMessage className="text-red-500 font-bold text-[10px] uppercase tracking-widest pl-1" />
@@ -350,7 +350,7 @@ export function InviteCollaboratorModal({
                     {step === 1 ? "Cancel" : "Back"}
                   </Button>
                 )}
-                
+
                 {step === 1 ? (
                   <Button
                     type="button"

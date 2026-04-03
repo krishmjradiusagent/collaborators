@@ -76,10 +76,7 @@ export function CollaboratorCard({
             <Badge className="bg-[#5A5FF2] text-white hover:bg-[#5A5FF2] border-none text-[9px] h-5 px-3 font-black tracking-widest rounded-full uppercase">
               INVITED
             </Badge>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 rounded-full border border-slate-100/50">
-              <Clock className="size-3 text-slate-400" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">EXP 7D</span>
-            </div>
+
             <Button 
               variant="link" 
               className="text-[#5A5FF2] font-black text-[11px] h-auto p-0 hover:no-underline transition-all hover:gap-1.5"

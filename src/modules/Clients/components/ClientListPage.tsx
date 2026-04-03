@@ -59,8 +59,8 @@ export function ClientListPage({ }: ClientListPageProps) {
   const [localClients, setLocalClients] = React.useState<Client[]>(MOCK_CLIENTS)
   const { currentRole, isCollaborator, canInvite, canAssign } = useRole()
 
-  const isMortgageVisible = ["TEAM_LEAD", "AGENT", "LENDER"].includes(currentRole)
-  const canEditMortgage = ["TEAM_LEAD", "AGENT", "LENDER"].includes(currentRole)
+  const isMortgageVisible = ["LENDER"].includes(currentRole)
+  const canEditMortgage = ["LENDER"].includes(currentRole)
 
   const handleMortgageStatusUpdate = (clientId: string, newStatus: MortgageStatus) => {
     setLocalClients(prev => prev.map(c => c.id === clientId ? { ...c, mortgage_status: newStatus } : c))

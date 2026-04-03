@@ -27,6 +27,9 @@ import { Separator } from "@/components/ui/Separator"
 export function ContextSwitcher() {
   const { 
     isCollaborator, 
+    hasFullAccess,
+    assignmentLevel,
+    setAssignmentLevel,
     selectedTeam, setSelectedTeam,
     selectedAgent, setSelectedAgent,
     selectedTransaction, setSelectedTransaction
@@ -69,8 +72,35 @@ export function ContextSwitcher() {
             placeholder="Search teams, agents, or deals..." 
             className="h-12 border-none ring-0 focus:ring-0 text-[14px]"
           />
-          <CommandList className="max-h-[400px]">
-             <CommandEmpty className="py-8 text-center text-sm text-slate-500 font-medium tracking-tight">No assignments found.</CommandEmpty>
+           {/* Assignment Level Toggle (for Testing/Restricted roles) */}
+           {!hasFullAccess && (
+             <div className="p-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Assignment Level</span>
+                <div className="flex bg-slate-200 rounded-lg p-0.5">
+                   <button 
+                     onClick={() => setAssignmentLevel('CLIENT')}
+                     className={cn(
+                       "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                       assignmentLevel === 'CLIENT' ? "bg-white text-[#5A5FF2] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                     )}
+                   >
+                     Client
+                   </button>
+                   <button 
+                     onClick={() => setAssignmentLevel('TRANSACTION')}
+                     className={cn(
+                       "px-3 py-1 text-[11px] font-bold rounded-md transition-all",
+                       assignmentLevel === 'TRANSACTION' ? "bg-white text-[#5A5FF2] shadow-sm" : "text-slate-500 hover:text-slate-700"
+                     )}
+                   >
+                     Transaction
+                   </button>
+                </div>
+             </div>
+           )}
+
+           <CommandList className="max-h-[400px]">
+              <CommandEmpty className="py-8 text-center text-sm text-slate-500 font-medium tracking-tight">No assignments found.</CommandEmpty>
              
              {/* Team Switching */}
              <CommandGroup heading={<span className="px-2 pb-2 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 opacity-60">Assigned Teams</span>}>

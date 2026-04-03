@@ -49,6 +49,7 @@ export function useCollaborators() {
         transactions: [],
       },
       paymentStatus: "pending",
+      accessLevel: "Client level",
     };
 
     setCollaborators((prev) => [newCollaborator, ...prev]);

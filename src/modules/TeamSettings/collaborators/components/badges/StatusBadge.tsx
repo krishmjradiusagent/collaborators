@@ -3,7 +3,6 @@ import { Badge } from "../../../../../components/ui/Badge";
 
 interface StatusBadgeProps {
   status: Status;
-  expiryDays?: number;
   onResend?: () => void;
 }
 
@@ -26,7 +25,7 @@ const STATUS_CONFIG = {
   },
 } as const;
 
-export function StatusBadge({ status, expiryDays, onResend }: StatusBadgeProps) {
+export function StatusBadge({ status, onResend }: StatusBadgeProps) {
   const config = STATUS_CONFIG[status] || STATUS_CONFIG.active;
 
   return (
@@ -37,11 +36,7 @@ export function StatusBadge({ status, expiryDays, onResend }: StatusBadgeProps) 
       
       {status === "invited" && (
         <div className="flex flex-row items-center justify-center gap-2.5 shrink-0">
-          {expiryDays && (
-            <div className="h-4 px-1.5 text-[9px] font-bold text-slate-400 uppercase tracking-tighter border border-slate-200 bg-white rounded-full flex items-center leading-none">
-               EXP {expiryDays}D
-            </div>
-          )}
+
           {onResend && (
             <button 
               onClick={(e) => {

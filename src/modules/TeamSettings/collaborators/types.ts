@@ -17,6 +17,7 @@ export interface Collaborator {
   activatedDate: string | null;
   assignments: Assignments;
   paymentStatus: "pending" | "active" | "paused" | "failed";
+  accessLevel?: 'Client level' | 'Transaction level';
 }
 
 export interface Client {

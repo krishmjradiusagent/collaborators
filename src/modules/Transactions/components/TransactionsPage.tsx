@@ -33,6 +33,7 @@ import { INITIAL_COLLABORATORS } from "../../TeamSettings/collaborators/mockData
 import { TransactionDetailSidePanel } from "./TransactionDetailSidePanel"
 import { CreateTransactionWizard } from "./CreateTransactionWizard"
 import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
+import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
 
 import { MOCK_CLIENTS } from "../../Clients/mockData"
 import { ClientDetailSidePanel } from "../../Clients/components/ClientDetailSidePanel"
@@ -55,7 +56,7 @@ const mockTransactions: Transaction[] = [
     collaborators: [
       { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" },
       { id: "c-2", name: "Robert Fox", role: "Lender", status: "active" },
-      { id: "c-3", name: "Jessica Taylor", role: "Co-Agent", status: "invited", invitationExpiry: "EXP 7D" }
+      { id: "c-3", name: "Jessica Taylor", role: "Co-Agent", status: "invited" }
     ]
   },
   {
@@ -109,6 +110,17 @@ const mockTransactions: Transaction[] = [
     ]
   }
 ];
+
+type CollaboratorType = 'tc' | 'lender' | 'vendor' | 'va';
+
+const getCollabType = (role: string): CollaboratorType => {
+  const r = role.toLowerCase()
+  if (r.includes('tc') || r.includes('t.c')) return 'tc'
+  if (r.includes('lender')) return 'lender'
+  if (r.includes('vendor')) return 'vendor'
+  if (r.includes('va')) return 'va'
+  return 'tc'
+}
 
 
 export function TransactionsPage() {
@@ -286,7 +298,7 @@ export function TransactionsPage() {
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purchase Price <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
-                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Agent Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Collaborators <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Acceptance Date <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last updated <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Close Of Escrow <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
@@ -339,47 +351,120 @@ export function TransactionsPage() {
                                handleOpenClientProfile(tx);
                             }}
                          >
-                            {tx.collaborators.length > 0 ? (
-                              <div className="flex flex-col gap-0.5">
-                                 <div className="flex items-center gap-2">
-                                    <span className="text-[13px] font-semibold text-[#1f2937] leading-tight">{tx.collaborators[0].name}</span>
-                                    <Badge variant="brand" className="h-4 px-1.5 text-[8px] font-black uppercase tracking-widest rounded-[4px] border-none flex items-center justify-center">
-                                       {tx.collaborators[0].role}
-                                    </Badge>
-                                 </div>
-                                 {tx.collaborators.length > 1 && (
-                                    <div className="flex items-center gap-1.5">
-                                       <span className="text-[11px] text-slate-400 font-medium leading-tight">{tx.collaborators[1]?.name || ""}</span>
-                                       {tx.collaborators[1] && (
-                                         <Badge variant="slate" className="h-3.5 px-1.5 text-[7.5px] font-black uppercase tracking-widest rounded-[4px] border-none opacity-60 flex items-center justify-center">
-                                            {tx.collaborators[1].role}
-                                         </Badge>
-                                       )}
-                                       {tx.collaborators.length > 2 && (
-                                          <Badge className="bg-[#f5f3ff] text-[#8b5cf6] border-none text-[8.5px] px-1.5 h-3.5 flex items-center justify-center rounded-full font-bold uppercase tracking-tight">
-                                             +{tx.collaborators.length - 2} more
-                                          </Badge>
-                                       )}
-                                    </div>
-                                 )}
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 group/add">
-                                 <span className="text-[10px] font-bold text-slate-300 tracking-widest">NONE</span>
-                                 {canAssign && (
-                                   <button 
-                                     onClick={(e) => {
-                                       e.stopPropagation();
-                                       setSelectedTxId(tx.id);
-                                       setIsAssignModalOpen(true);
-                                     }}
-                                     className="size-7 rounded-full border-2 border-dashed border-slate-100 flex items-center justify-center text-slate-300 hover:border-[#5A5FF2] hover:text-[#5A5FF2] hover:bg-white hover:scale-110 transition-all opacity-0 group-hover:opacity-100"
-                                   >
-                                      <Plus className="size-4" />
+                            <div className="flex flex-col gap-0.5 min-w-[140px] py-1 justify-center">
+                              {/* 0 Collabs Case */}
+                              {tx.collaborators.length === 0 && (
+                                <div className="flex items-center gap-2 h-[18px]">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                                    None
+                                  </span>
+                                  {canAssign && (
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTxId(tx.id);
+                                        setIsAssignModalOpen(true);
+                                      }}
+                                      className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
+                                    >
+                                      <Plus className="h-2.5 w-2.5 stroke-[4px]" />
                                     </button>
                                   )}
-                              </div>
-                            )}
+                                </div>
+                              )}
+
+                              {/* 1 Collab Case */}
+                              {tx.collaborators.length === 1 && (
+                                <div className="flex items-center gap-2 h-[18px]">
+                                  <div className="flex items-center gap-1.5 overflow-hidden">
+                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
+                                      {tx.collaborators[0].name}
+                                    </span>
+                                    <TypeBadge type={getCollabType(tx.collaborators[0].role)} className="h-[14px] px-1 text-[7px]" />
+                                  </div>
+                                  {canAssign && (
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTxId(tx.id);
+                                        setIsAssignModalOpen(true);
+                                      }}
+                                      className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
+                                    >
+                                      <Plus className="h-2.5 w-2.5 stroke-[4px]" />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* 2 Collabs Case */}
+                              {tx.collaborators.length === 2 && (
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex items-center gap-1.5 h-[18px]">
+                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
+                                      {tx.collaborators[1].name}
+                                    </span>
+                                    <TypeBadge type={getCollabType(tx.collaborators[1].role)} className="h-[14px] px-1 text-[7px]" />
+                                  </div>
+                                  <div className="flex items-center gap-2 h-[18px]">
+                                    <div className="flex items-center gap-1.5 overflow-hidden">
+                                      <span className="text-[13px] font-black text-[#373758] truncate leading-none">
+                                        {tx.collaborators[0].name}
+                                      </span>
+                                      <TypeBadge type={getCollabType(tx.collaborators[0].role)} className="h-[14px] px-1 text-[7px]" />
+                                    </div>
+                                    {canAssign && (
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedTxId(tx.id);
+                                          setIsAssignModalOpen(true);
+                                        }}
+                                        className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
+                                      >
+                                        <Plus className="h-2.5 w-2.5 stroke-[4px]" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* 3+ Collabs Case */}
+                              {tx.collaborators.length > 2 && (
+                                <div className="flex flex-col gap-0.5">
+                                  <div className="flex items-center gap-1.5 h-[18px]">
+                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
+                                      {tx.collaborators[tx.collaborators.length-1].name}
+                                    </span>
+                                    <TypeBadge type={getCollabType(tx.collaborators[tx.collaborators.length-1].role)} className="h-[14px] px-1 text-[7px]" />
+                                  </div>
+                                  <div className="flex items-center gap-2 h-[18px]">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTx(tx);
+                                        setIsSidePanelOpen(true);
+                                      }}
+                                      className="text-[10px] font-bold text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.05em] transition-colors leading-none"
+                                    >
+                                      {tx.collaborators.length - 1} more
+                                    </button>
+                                    {canAssign && (
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setSelectedTxId(tx.id);
+                                          setIsAssignModalOpen(true);
+                                        }}
+                                        className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
+                                      >
+                                        <Plus className="h-2.5 w-2.5 stroke-[4px]" />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                          </TableCell>
                          <TableCell className="text-[12px] text-[#1f2937] font-medium">
                             {tx.acceptanceDate}

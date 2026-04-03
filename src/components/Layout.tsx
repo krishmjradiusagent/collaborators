@@ -9,6 +9,14 @@ import {
 } from "lucide-react"
 import { useRole } from "../contexts/RoleContext"
 import { ContextSwitcher } from "./ContextSwitcher"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "./ui/DropdownMenu"
+import { User, LogOut } from "lucide-react"
 
 import { cn } from "../lib/utils"
 
@@ -19,7 +27,7 @@ interface LayoutProps {
 }
 
 export function Layout({ children, activeTab = "Team settings", setActiveTab }: LayoutProps) {
-  const { currentRole, selectedTeam, isCollaborator } = useRole()
+  const { currentRole, selectedTeam } = useRole()
   const tabs = [
     "Accounts",
     "Integrations",
@@ -33,7 +41,7 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
     { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
     { icon: Bell, label: "Security" },
-    ...(!isCollaborator ? [{ icon: Settings, label: "Team" }] : []),
+    ...(currentRole === 'TEAM_LEAD' ? [{ icon: Settings, label: "Team" }] : []),
   ]
 
   return (
@@ -80,26 +88,56 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
 
           <div className="h-[70px] w-px bg-[#EFEFEF] ml-2" />
 
-          {/* Profile Section */}
-          <div className="flex items-center gap-4 pl-4 pr-2">
-             <div className="w-[48px] h-[48px] rounded-full overflow-hidden border border-[#EFEFEF]">
-                <img 
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop" 
-                  alt="VB" 
-                  className="w-full h-full object-cover"
-                />
-             </div>
-            <div className="text-left flex flex-col justify-center">
-              <span className="text-[16px] font-semibold text-[#303030] leading-none mb-1">Vanessa Brown</span>
-              <div className="flex items-center gap-1.5">
-                 <div className="w-[12px] h-[12px] bg-blue-600 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: selectedTeam?.primaryColor }}>
-                    <Check className="w-[8px] h-[8px] text-white" strokeWidth={4} />
+          {/* Profile Section with Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-4 pl-4 pr-2 cursor-pointer hover:bg-slate-50 transition-all py-1.5 rounded-2xl group">
+                 <div className="w-[48px] h-[48px] rounded-full overflow-hidden border border-[#EFEFEF]">
+                    <img 
+                      src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&auto=format&fit=crop" 
+                      alt="VB" 
+                      className="w-full h-full object-cover"
+                    />
                  </div>
-                 <span className="text-[12px] text-[#303030] lining-nums">Radius Agent</span>
+                <div className="text-left flex flex-col justify-center">
+                  <span className="text-[16px] font-semibold text-[#303030] leading-none mb-1 group-hover:text-primary transition-colors">Vanessa Brown</span>
+                  <div className="flex items-center gap-1.5">
+                     <div className="w-[12px] h-[12px] bg-blue-600 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: selectedTeam?.primaryColor }}>
+                        <Check className="w-[8px] h-[8px] text-white" strokeWidth={4} />
+                     </div>
+                     <span className="text-[12px] text-[#303030] lining-nums">Radius Agent</span>
+                  </div>
+                </div>
+                <ChevronDown className="h-[16px] w-[16px] text-blue-600 ml-2 group-hover:translate-y-0.5 transition-all" style={{ color: selectedTeam?.primaryColor }} />
               </div>
-            </div>
-            <ChevronDown className="h-[16px] w-[16px] text-blue-600 ml-2" style={{ color: selectedTeam?.primaryColor }} />
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px] rounded-2xl p-2 shadow-xl border-slate-100 bg-white z-[300]">
+              <DropdownMenuItem 
+                onClick={() => setActiveTab?.("Profile")}
+                className="flex items-center gap-2 px-3 py-2.5 text-[14px] font-semibold text-[#303030] rounded-[10px] cursor-pointer focus:bg-slate-50 focus:text-primary"
+              >
+                <User className="size-4" />
+                Your Profile
+              </DropdownMenuItem>
+              
+              {currentRole === 'TEAM_LEAD' && (
+                <DropdownMenuItem 
+                  onClick={() => setActiveTab?.("Team")}
+                  className="flex items-center gap-2 px-3 py-2.5 text-[14px] font-semibold text-[#303030] rounded-[10px] cursor-pointer focus:bg-slate-50 focus:text-primary"
+                >
+                  <Settings className="size-4" />
+                  Team Settings
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuSeparator className="bg-slate-50 my-1" />
+              
+              <DropdownMenuItem className="flex items-center gap-2 px-3 py-2.5 text-[14px] font-semibold text-rose-500 rounded-[10px] cursor-pointer focus:bg-rose-50 focus:text-rose-600">
+                <LogOut className="size-4" />
+                Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -133,21 +171,6 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
             ))}
           </div>
 
-          {/* Bottom Settings Icon - Moved to end of side panel */}
-          <div className="mt-auto flex flex-col items-center gap-6 pb-4">
-             <button
-                onClick={() => setActiveTab?.("Settings")}
-                className={cn(
-                  "p-[10px] rounded-[12px] transition-all duration-300 size-[44px] flex items-center justify-center relative group",
-                  activeTab === "Settings" ? "bg-[#EEF2FF] text-[#5A5FF2] shadow-[0_4px_12px_rgba(90,95,242,0.15)] ring-1 ring-[#5A5FF2]/20" : "text-[#4F7396] hover:bg-slate-50 hover:text-slate-900"
-                )}
-             >
-                <Settings className={cn("h-[22px] w-[22px] transition-transform duration-300 group-hover:scale-110", activeTab === "Settings" ? "fill-[#5A5FF2]/10" : "")} />
-                {activeTab === "Settings" && (
-                  <div className="absolute left-0 w-1 h-6 bg-[#5A5FF2] rounded-r-full -ml-[1px]" />
-                )}
-             </button>
-          </div>
         </aside>
 
         {/* Main Content Area - Total Screen Width, Flush with Sidebar */}

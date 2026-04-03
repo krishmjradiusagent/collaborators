@@ -35,7 +35,8 @@ export const INITIAL_COLLABORATORS: Collaborator[] = [
       clients: ["client-1", "client-5", "client-12"],
       transactions: ["txn-1", "txn-3", "txn-7", "txn-9"]
     },
-    paymentStatus: "active"
+    paymentStatus: "active",
+    accessLevel: "Client level"
   },
   {
     id: "collab-2",
@@ -44,13 +45,14 @@ export const INITIAL_COLLABORATORS: Collaborator[] = [
     type: "lender",
     status: "invited",
     invitedDate: "2025-04-01",
-    inviteExpiresAt: "2025-04-08",
+    inviteExpiresAt: null,
     activatedDate: null,
     assignments: {
       clients: [],
       transactions: []
     },
-    paymentStatus: "pending"
+    paymentStatus: "pending",
+    accessLevel: "Transaction level"
   },
   {
     id: "collab-3",
@@ -65,7 +67,8 @@ export const INITIAL_COLLABORATORS: Collaborator[] = [
       clients: ["client-2", "client-6"],
       transactions: []
     },
-    paymentStatus: "active"
+    paymentStatus: "active",
+    accessLevel: "Client level"
   },
   {
     id: "collab-4",
@@ -80,6 +83,7 @@ export const INITIAL_COLLABORATORS: Collaborator[] = [
       clients: ["client-3", "client-8", "client-14"],
       transactions: ["txn-2", "txn-5", "txn-11", "txn-18"]
     },
-    paymentStatus: "active"
+    paymentStatus: "active",
+    accessLevel: "Client level"
   }
 ];

@@ -52,7 +52,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   initialCollabExpanded = true,
   initialTab = 'Activity'
 }) => {
-  const { isCollaborator, selectedTransaction, canInvite, canAssign } = useRole();
+  const { isCollaborator, hasFullAccess, assignmentLevel, canEdit, selectedTransaction, canInvite, canAssign } = useRole();
   const [activeTab, setActiveTab] = useState(initialTab);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -63,6 +63,9 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     MOCK_ASSIGNMENTS.filter(a => a.clientId === client.id)
   );
 
+  const isClientLevel = hasFullAccess || assignmentLevel === 'CLIENT';
+  const isTxLevel = !hasFullAccess && assignmentLevel === 'TRANSACTION';
+
   React.useEffect(() => {
     if (isOpen) {
       setIsCollabExpanded(initialCollabExpanded);
@@ -70,12 +73,24 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
   }, [isOpen, initialCollabExpanded]);
 
   const clientTransactions = React.useMemo(() => {
-    const txs = MOCK_TRANSACTIONS.filter(t => t.clientId === client.id);
-    if (isCollaborator && selectedTransaction) {
-      return txs.filter(t => t.id === selectedTransaction.id);
+    let txs = MOCK_TRANSACTIONS.filter(t => t.clientId === client.id);
+    
+    // Matrix: If Transaction-level, only show assigned deals
+    if (isTxLevel) {
+       // Filter by logged in user's assigned transactions
+       // For demo/mock: assume they can only see specifically assigned ones
+       // If no selectedTransaction, strictly filter by assignment list
+       if (selectedTransaction) {
+         txs = txs.filter(t => t.id === selectedTransaction.id);
+       } else {
+         // Should follow assignment logic or show none
+         txs = []; 
+       }
+    } else if (isCollaborator && selectedTransaction) {
+      txs = txs.filter(t => t.id === selectedTransaction.id);
     }
     return txs;
-  }, [client.id, isCollaborator, selectedTransaction]);
+  }, [client.id, isCollaborator, isTxLevel, selectedTransaction]);
 
   // Derived: Current collaborators for this client
   const assignedCollabs = collaborators.filter(c => 
@@ -129,9 +144,18 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
     setIsAssignModalOpen(true);
   };
 
-  const tabs = isCollaborator 
-    ? ['Activity', 'Transactions', 'Notes', 'Reminders']
-    : ['Activity', 'Searches', 'Property recommendations', 'Transactions', 'Notes', 'Reminders'];
+  const tabs = React.useMemo(() => {
+    let baseTabs = isCollaborator 
+      ? ['Activity', 'Transactions', 'Notes', 'Reminders']
+      : ['Activity', 'Searches', 'Property recommendations', 'Transactions', 'Notes', 'Reminders'];
+
+    // If transaction-level (restricted), hide Notes and Reminders
+    if (isTxLevel) {
+      baseTabs = baseTabs.filter(t => !['Notes', 'Reminders'].includes(t));
+    }
+    
+    return baseTabs;
+  }, [isCollaborator, isTxLevel]);
 
   if (!client) return null;
 
@@ -168,15 +192,17 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                         ))}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" className="text-[#5a5ff2] font-semibold text-[14px] hover:text-[#5a5ff2]/80 gap-1 pr-1 py-1">
-                        SEND APP INVITE
-                        <ChevronDown className="size-5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-[#737373]">
-                        <MoreVertical className="size-5" />
-                      </Button>
-                    </div>
+                    {canEdit && (
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" className="text-[#5a5ff2] font-semibold text-[14px] hover:text-[#5a5ff2]/80 gap-1 pr-1 py-1">
+                          SEND APP INVITE
+                          <ChevronDown className="size-5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-[#737373]">
+                          <MoreVertical className="size-5" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -185,13 +211,23 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
 
               {/* Status & Agent Select Row */}
               <div className="flex items-center gap-4 w-full mb-4">
-                <div className="bg-[#dcfce7] border-[#86efac] border-[0.909px] flex h-[38px] items-center justify-between px-3 rounded-[10px] w-[220px] cursor-pointer hover:bg-[#dcfce7]/80">
+                <div 
+                  className={cn(
+                    "bg-[#dcfce7] border-[#86efac] border-[0.909px] flex h-[38px] items-center justify-between px-3 rounded-[10px] w-[220px]",
+                    canEdit ? "cursor-pointer hover:bg-[#dcfce7]/80" : "cursor-default"
+                  )}
+                >
                   <span className="text-[#166534] text-[14px] font-medium uppercase tracking-wider">New Client</span>
-                  <ChevronDown className="size-4 text-[#166534]" />
+                  {canEdit && <ChevronDown className="size-4 text-[#166534]" />}
                 </div>
 
                 {/* Assigned Agent */}
-                <div className="bg-[#f5f5f5] flex items-center px-3 py-1 rounded-[8px] h-[38px] flex-1 cursor-pointer hover:bg-[#efeff0]">
+                <div 
+                  className={cn(
+                    "bg-[#f5f5f5] flex items-center px-3 py-1 rounded-[8px] h-[38px] flex-1",
+                    canEdit ? "cursor-pointer hover:bg-[#efeff0]" : "cursor-default"
+                  )}
+                >
                   <div className="flex items-center gap-2 flex-1">
                     <Avatar className="size-5">
                       <AvatarImage src="https://i.pravatar.cc/150?u=monica" />
@@ -199,37 +235,48 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                     </Avatar>
                     <span className="text-[#525252] text-[14px] font-medium">Monica Miller</span>
                   </div>
-                  <ChevronDown className="size-4 text-[#525252]" />
+                  {canEdit && <ChevronDown className="size-4 text-[#525252]" />}
                 </div>
               </div>
 
               <Separator className="bg-[#e5e5e5] mb-4" />
 
               {/* Contact Details Grid */}
-              <div className="grid grid-cols-4 gap-4 w-full mb-4">
-                <div>
-                  <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Email</p>
-                  <span className="text-[#525252] text-[14px] font-semibold truncate block">{client.email}</span>
+              {isClientLevel ? (
+                <div className="grid grid-cols-4 gap-4 w-full mb-4">
+                  <div>
+                    <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Email</p>
+                    <span className="text-[#525252] text-[14px] font-semibold truncate block">{client.email}</span>
+                  </div>
+                  <div>
+                    <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Phone</p>
+                    <span className="text-[#525252] text-[14px] font-semibold">{client.phone}</span>
+                  </div>
+                  <div>
+                    <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Added on</p>
+                    <span className="text-[#525252] text-[14px] font-semibold">{client.addedOn}</span>
+                  </div>
+                  <div>
+                    <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Source</p>
+                    <span className="text-[#525252] text-[14px] font-semibold leading-none">{client.source || "-"}</span>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Phone</p>
-                  <span className="text-[#525252] text-[14px] font-semibold">{client.phone}</span>
+              ) : (
+                <div className="w-full mb-4 py-2">
+                   <div className="flex items-center gap-2 p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                      <div className="size-8 rounded-full bg-slate-200 flex items-center justify-center">
+                        <Star className="size-4 text-slate-400" />
+                      </div>
+                      <p className="text-[13px] text-slate-400 font-medium italic">Detailed contact information is restricted to client-level collaborators.</p>
+                   </div>
                 </div>
-                <div>
-                  <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Added on</p>
-                  <span className="text-[#525252] text-[14px] font-semibold">{client.addedOn}</span>
-                </div>
-                <div>
-                  <p className="text-[#a3a3a3] text-[12px] mb-1 font-medium">Source</p>
-                  <span className="text-[#525252] text-[14px] font-semibold leading-none">{client.source || "-"}</span>
-                </div>
-              </div>
+              )}
 
               <Separator className="bg-[#e5e5e5] mb-3" />
 
               {/* Accordion Sections with Integrated Logic */}
               <div className="w-full space-y-3">
-                {!isCollaborator && (
+                {isClientLevel && !isCollaborator && (
                   <>
                     <div className="flex items-center justify-between w-full h-[32px]">
                       <span className="text-[#111827] text-[14px] font-semibold">AI Prospecting</span>
@@ -244,33 +291,37 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                   </>
                 )}
 
-                <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
-                  <span className="text-[#111827] text-[14px] font-semibold">Additional Details</span>
-                  <ChevronRight className="size-5 text-[#111827] group-hover:translate-x-1 transition-transform" />
-                </div>
+                {isClientLevel && (
+                  <>
+                    <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
+                      <span className="text-[#111827] text-[14px] font-semibold">Additional Details</span>
+                      <ChevronRight className="size-5 text-[#111827] group-hover:translate-x-1 transition-transform" />
+                    </div>
 
-                <Separator className="bg-[#e5e5e5]" />
+                    <Separator className="bg-[#e5e5e5]" />
 
-                <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
-                  <span className="text-[#111827] text-[14px] font-semibold">Tags</span>
-                  <ChevronRight className="size-5 text-[#111827] group-hover:translate-x-1 transition-transform" />
-                </div>
+                    <div className="flex items-center justify-between w-full h-[32px] cursor-pointer group">
+                      <span className="text-[#111827] text-[14px] font-semibold">Tags</span>
+                      <ChevronRight className="size-5 text-[#111827] group-hover:translate-x-1 transition-transform" />
+                    </div>
 
-                <Separator className="bg-[#e5e5e5]" />
+                    <Separator className="bg-[#e5e5e5]" />
 
-                <div className="flex items-center justify-between w-full h-[32px] cursor-pointer">
-                  <span className="text-[#111827] text-[14px] font-semibold">Family Members</span>
-                  <div className="flex items-center gap-3">
-                     {canAssign && (
-                       <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
-                         <Plus className="size-3 text-[#5a5ff2]" />
-                       </div>
-                     )}
-                     <ChevronRight className="size-5 text-[#111827]" />
-                  </div>
-                </div>
+                    <div className="flex items-center justify-between w-full h-[32px] cursor-pointer">
+                      <span className="text-[#111827] text-[14px] font-semibold">Family Members</span>
+                      <div className="flex items-center gap-3">
+                         {canEdit && (
+                           <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
+                             <Plus className="size-3 text-[#5a5ff2]" />
+                           </div>
+                         )}
+                         <ChevronRight className="size-5 text-[#111827]" />
+                      </div>
+                    </div>
 
-                <Separator className="bg-[#e5e5e5]" />
+                    <Separator className="bg-[#e5e5e5]" />
+                  </>
+                )}
 
                 {/* Innovative Collaborator Cards */}
                 <div className="w-full">
@@ -284,7 +335,7 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                       )}
                     </div>
                     <div className="flex items-center gap-3">
-                      {canAssign && (
+                      {canAssign && !isCollabExpanded && (
                         <div 
                           className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors"
                           onClick={(e) => {
@@ -372,9 +423,11 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                     <Badge className="bg-[#5a5ff2] hover:bg-[#5a5ff2] text-white text-[12px] h-[20px] px-1.5 min-w-[20px] flex items-center justify-center rounded-full border-none">1</Badge>
                   </div>
                   <div className="flex items-center gap-3">
-                     <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
-                       <Plus className="size-3 text-[#5a5ff2]" />
-                     </div>
+                     {canEdit && (
+                       <div className="size-6 rounded-full border border-[#5a5ff2] flex items-center justify-center hover:bg-[#5a5ff2]/5 transition-colors">
+                         <Plus className="size-3 text-[#5a5ff2]" />
+                       </div>
+                     )}
                      <ChevronRight className="size-5 text-[#111827]" />
                   </div>
                 </div>
@@ -491,36 +544,43 @@ export const ClientDetailSidePanel: React.FC<ClientDetailSidePanelProps> = ({
                                <p className="text-[13px] font-bold text-slate-400">3 Beds, 2 Baths, 3000 Sq.ft</p>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                             <Badge className="bg-[#EFF8FE] text-[#0C4A6E] border-none font-black text-[10px] px-3 h-7 tracking-widest uppercase rounded-full">Buyer</Badge>
-                             <div className="bg-[#F0FDF4] border-[#DCFCE7] border-[1px] flex h-7 items-center justify-between px-3 rounded-full cursor-pointer hover:bg-[#F0FDF4]/80 transition-all gap-2">
-                                <span className="text-[#15803D] text-[10px] font-black uppercase tracking-widest">New Offer</span>
-                                <ChevronDown className="size-3 text-[#15803D]" />
-                             </div>
-                             
-                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button className="p-1 text-slate-300 hover:text-slate-600 transition-colors outline-none">
-                                     <MoreVertical className="size-5" />
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-2 border-slate-100 shadow-xl bg-white z-[301]">
-                                  {canAssign && (
-                                    <DropdownMenuItem 
-                                      className="rounded-[10px] py-2.5 font-bold text-[#374151] flex items-center gap-2 cursor-pointer focus:bg-[#F5F3FF] focus:text-[#5A5FF2]"
-                                      onClick={() => openAssignModal('transaction', tx.id)}
-                                    >
-                                      <Plus className="size-4" />
-                                      Collaborator
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator className="bg-slate-50 my-1" />
-                                  <DropdownMenuItem className="rounded-[10px] py-2.5 font-medium text-slate-500 cursor-pointer">
-                                    View Details
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                             </DropdownMenu>
-                          </div>
+                              <div className="flex items-center gap-3">
+                                 <Badge className="bg-[#EFF8FE] text-[#0C4A6E] border-none font-black text-[10px] px-3 h-7 tracking-widest uppercase rounded-full">Buyer</Badge>
+                                 <div 
+                                   className={cn(
+                                     "bg-[#F0FDF4] border-[#DCFCE7] border-[1px] flex h-7 items-center justify-between px-3 rounded-full transition-all gap-2",
+                                     canEdit ? "cursor-pointer hover:bg-[#F0FDF4]/80" : "cursor-default"
+                                   )}
+                                 >
+                                    <span className="text-[#15803D] text-[10px] font-black uppercase tracking-widest">New Offer</span>
+                                    {canEdit && <ChevronDown className="size-3 text-[#15803D]" />}
+                                 </div>
+                                 
+                                 {canEdit && (
+                                   <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <button className="p-1 text-slate-300 hover:text-slate-600 transition-colors outline-none">
+                                           <MoreVertical className="size-5" />
+                                        </button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-2 border-slate-100 shadow-xl bg-white z-[301]">
+                                        {canAssign && (
+                                          <DropdownMenuItem 
+                                            className="rounded-[10px] py-2.5 font-bold text-[#374151] flex items-center gap-2 cursor-pointer focus:bg-[#F5F3FF] focus:text-[#5A5FF2]"
+                                            onClick={() => openAssignModal('transaction', tx.id)}
+                                          >
+                                            <Plus className="size-4" />
+                                            Collaborator
+                                          </DropdownMenuItem>
+                                        )}
+                                        <DropdownMenuSeparator className="bg-slate-50 my-1" />
+                                        <DropdownMenuItem className="rounded-[10px] py-2.5 font-medium text-slate-500 cursor-pointer">
+                                          View Details
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                   </DropdownMenu>
+                                 )}
+                              </div>
                         </div>
 
                         <div className="grid grid-cols-5 gap-4 pt-4 border-t border-[#F1F4F9]">

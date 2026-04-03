@@ -32,8 +32,6 @@ export function CollaboratorsSection() {
     removeCollaborator,
     resendInvite,
     existingEmails,
-    allClients,
-    allTransactions,
   } = useCollaborators();
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
@@ -123,8 +121,6 @@ export function CollaboratorsSection() {
 
       <CollaboratorTable 
         collaborators={collaborators}
-        allClients={allClients}
-        allTransactions={allTransactions}
         onRemove={handleRemoveClick}
         onResend={resendInvite}
       />
