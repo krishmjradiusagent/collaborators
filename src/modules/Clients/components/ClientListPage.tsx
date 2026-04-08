@@ -9,11 +9,13 @@ import {
   MoreVertical,
   ChevronRight,
   ChevronDown,
-  Search
+  Search,
+  MoreHorizontal
 } from "lucide-react"
 import { Button } from "../../../components/ui/Button"
 import { Input } from "../../../components/ui/Input"
 import { Badge } from "../../../components/ui/Badge"
+import { toast } from "sonner"
 import { useRole } from "@/contexts/RoleContext"
 import {
   Table,
@@ -28,6 +30,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../../components/ui/DropdownMenu"
 import {
@@ -39,6 +42,7 @@ import { ClientDetailSidePanel } from "./ClientDetailSidePanel"
 import { AssignCollaboratorModal } from "./AssignCollaboratorModal"
 import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
 import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
+import { ManageCollaboratorsModal } from "./ManageCollaboratorsModal"
 
 interface ClientListPageProps {
 }
@@ -51,13 +55,25 @@ export function ClientListPage({ }: ClientListPageProps) {
 
   // Modal State
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
+  const [isManageModalOpen, setIsManageModalOpen] = React.useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = React.useState(false)
   const [clientForAssign, setClientForAssign] = React.useState<Client | null>(null)
+  const [clientForManage, setClientForManage] = React.useState<Client | null>(null)
 
   // Local state for instant updates
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
   const [localClients, setLocalClients] = React.useState<Client[]>(MOCK_CLIENTS)
-  const { currentRole, isCollaborator, canInvite, canAssign } = useRole()
+  const { currentRole, isCollaborator, canInvite } = useRole()
+
+  // Handle custom trigger from Manage Modal
+  React.useEffect(() => {
+    const handleOpenAssign = (e: any) => {
+      setClientForAssign(e.detail.client)
+      setIsAssignModalOpen(true)
+    }
+    window.addEventListener('open-assign-collab', handleOpenAssign)
+    return () => window.removeEventListener('open-assign-collab', handleOpenAssign)
+  }, [])
 
   const isMortgageVisible = ["LENDER"].includes(currentRole)
   const canEditMortgage = ["LENDER"].includes(currentRole)
@@ -77,17 +93,41 @@ export function ClientListPage({ }: ClientListPageProps) {
     setIsPanelOpen(true)
   }
 
-  const handleCollabMoreClick = (e: React.MouseEvent, client: Client) => {
-    e.stopPropagation()
-    setShouldExpandCollab(true)
-    setSelectedClient(client)
-    setIsPanelOpen(true)
-  }
-
   const handleAddCollabClick = (e: React.MouseEvent, client: Client) => {
     e.stopPropagation()
     setClientForAssign(client)
     setIsAssignModalOpen(true)
+  }
+
+  const handleManageCollabClick = (e: React.MouseEvent, client: Client) => {
+    e.stopPropagation()
+    setClientForManage(client)
+    setIsManageModalOpen(true)
+  }
+
+  const handleRemoveCollaborator = (collaboratorId: string) => {
+    if (!clientForManage) return
+    setLocalAssignments(prev => prev.filter(a => 
+      !(a.clientId === clientForManage.id && a.collaboratorId === collaboratorId)
+    ))
+  }
+
+  const handleRemoveAllCollaborators = () => {
+    if (!clientForManage) return
+    setLocalAssignments(prev => prev.filter(a => a.clientId !== clientForManage.id))
+    setIsManageModalOpen(false)
+    toast.success("All Collaborators Removed", {
+      className: "bg-[#EF4444] text-white border-none rounded-2xl",
+    })
+  }
+
+  const handleUpdateAccess = (collaboratorId: string, newType: 'client' | 'transaction') => {
+    if (!clientForManage) return
+    setLocalAssignments(prev => prev.map(a => 
+      (a.clientId === clientForManage.id && a.collaboratorId === collaboratorId)
+        ? { ...a, assignmentType: newType }
+        : a
+    ))
   }
 
   const handleAssignSuccess = (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => {
@@ -141,6 +181,25 @@ export function ClientListPage({ }: ClientListPageProps) {
             clientName={clientForAssign.name}
             canInvite={canInvite}
             defaultType="client"
+          />
+        )}
+
+        {clientForManage && (
+          <ManageCollaboratorsModal
+            open={isManageModalOpen}
+            onOpenChange={setIsManageModalOpen}
+            client={clientForManage}
+            assignedCollabs={GLOBAL_COLLABORATOR_POOL.filter(c => 
+              localAssignments.some(a => a.clientId === clientForManage.id && a.collaboratorId === c.id)
+            )}
+            assignments={localAssignments}
+            globalPool={GLOBAL_COLLABORATOR_POOL}
+            transactions={MOCK_TRANSACTIONS.filter(tx => tx.clientId === clientForManage.id)}
+            onRemove={handleRemoveCollaborator}
+            onRemoveAll={handleRemoveAllCollaborators}
+            onUpdateAccess={handleUpdateAccess}
+            onAssign={handleAssignSuccess}
+            onOpenInvite={() => setIsInviteModalOpen(true)}
           />
         )}
 
@@ -351,99 +410,77 @@ export function ClientListPage({ }: ClientListPageProps) {
                       </TableCell>
                     )}
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-col gap-0.5 min-w-[140px] py-1 justify-center">
-                        {/* 0 Collabs Case */}
-                        {assignedCollabs.length === 0 && (
-                          <div className="flex items-center gap-2 h-[18px]">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                              None
-                            </span>
-                            {canAssign && (
-                              <button
-                                onClick={(e) => handleAddCollabClick(e, client)}
-                                className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                              >
-                                <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                              </button>
-                            )}
-                          </div>
-                        )}
+                      <div className="flex items-center justify-between min-w-[180px] group/collab">
+                        <div className="flex flex-col gap-0.5 justify-center py-1">
+                          {/* 0 Collabs Case */}
+                          {assignedCollabs.length === 0 && (
+                            <div className="flex items-center gap-2 h-[18px]">
+                              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest leading-none">
+                                None
+                              </span>
+                            </div>
+                          )}
 
-                        {/* 1 Collab Case */}
-                        {assignedCollabs.length === 1 && (
-                          <div className="flex items-center gap-2 h-[18px]">
-                            <div className="flex items-center gap-1.5 overflow-hidden">
-                              <span className="text-[13px] font-black text-[#373758] truncate leading-none">
+                          {/* 1 Collab Case */}
+                          {assignedCollabs.length === 1 && (
+                            <div className="flex items-center gap-1.5 h-[18px]">
+                              <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[100px]">
                                 {assignedCollabs[0].name}
                               </span>
                               <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
                             </div>
-                            {canAssign && (
-                              <button
-                                onClick={(e) => handleAddCollabClick(e, client)}
-                                className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                              >
-                                <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                              </button>
-                            )}
-                          </div>
-                        )}
+                          )}
 
-                        {/* 2 Collabs Case */}
-                        {assignedCollabs.length === 2 && (
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1.5 h-[18px]">
-                              <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                {assignedCollabs[1].name}
-                              </span>
-                              <TypeBadge type={assignedCollabs[1].type} className="h-[14px] px-1 text-[7px]" />
-                            </div>
-                            <div className="flex items-center gap-2 h-[18px]">
-                              <div className="flex items-center gap-1.5 overflow-hidden">
-                                <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                  {assignedCollabs[0].name}
+                          {/* 2+ Collabs Case */}
+                          {assignedCollabs.length >= 2 && (
+                            <>
+                              <div className="flex items-center gap-1.5 h-[18px]">
+                                <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[100px]">
+                                  {assignedCollabs[assignedCollabs.length - 1].name}
                                 </span>
-                                <TypeBadge type={assignedCollabs[0].type} className="h-[14px] px-1 text-[7px]" />
+                                <TypeBadge type={assignedCollabs[assignedCollabs.length - 1].type} className="h-[14px] px-1 text-[7px]" />
                               </div>
-                              {canAssign && (
+                              <div className="flex items-center gap-2 h-[18px]">
                                 <button
-                                  onClick={(e) => handleAddCollabClick(e, client)}
-                                  className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
+                                  onClick={(e) => handleManageCollabClick(e, client)}
+                                  className="text-[10px] font-bold text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.05em] transition-colors leading-none"
                                 >
-                                  <Plus className="h-2.5 w-2.5 stroke-[4px]" />
+                                  {assignedCollabs.length - 1} more
                                 </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                              </div>
+                            </>
+                          )}
+                        </div>
 
-                        {/* 3+ Collabs Case */}
-                        {assignedCollabs.length > 2 && (
-                          <div className="flex flex-col gap-0.5">
-                            <div className="flex items-center gap-1.5 h-[18px]">
-                              <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                {assignedCollabs[assignedCollabs.length - 1].name}
-                              </span>
-                              <TypeBadge type={assignedCollabs[assignedCollabs.length - 1].type} className="h-[14px] px-1 text-[7px]" />
-                            </div>
-                            <div className="flex items-center gap-2 h-[18px]">
-                              <button
-                                onClick={(e) => handleCollabMoreClick(e, client)}
-                                className="text-[10px] font-bold text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.05em] transition-colors leading-none"
-                              >
-                                {assignedCollabs.length - 1} more
-                              </button>
-                              {canAssign && (
-                                <button
-                                  onClick={(e) => handleAddCollabClick(e, client)}
-                                  className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                                >
-                                  <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                        {/* Three-Dot Actions Menu */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="h-8 w-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#5A5FF2] hover:bg-[#5A5FF2]/10 transition-all opacity-0 group-hover/collab:opacity-100 data-[state=open]:opacity-100">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-1.5 border-slate-100 shadow-[0px_10px_30px_rgba(0,0,0,0.1)]">
+                            <DropdownMenuItem 
+                              className="rounded-xl font-bold text-[#171717] gap-3 p-3 cursor-pointer"
+                              onClick={(e) => handleAddCollabClick(e, client)}
+                            >
+                              <div className="size-8 rounded-full bg-[#5A5FF2]/10 flex items-center justify-center">
+                                <Plus className="h-4 w-4 text-[#5A5FF2]" />
+                              </div>
+                              Add Collab
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-slate-50 mx-1" />
+                            <DropdownMenuItem 
+                              className="rounded-xl font-bold text-[#171717] gap-3 p-3 cursor-pointer"
+                              onClick={(e) => handleManageCollabClick(e, client)}
+                            >
+                              <div className="size-8 rounded-full bg-slate-100 flex items-center justify-center">
+                                <Settings className="h-4 w-4 text-slate-500" />
+                              </div>
+                              Manage
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </TableCell>
                     <TableCell className="pr-6" onClick={(e) => e.stopPropagation()}>
