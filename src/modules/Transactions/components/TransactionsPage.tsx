@@ -33,8 +33,6 @@ import { INITIAL_COLLABORATORS } from "../../TeamSettings/collaborators/mockData
 import { TransactionDetailSidePanel } from "./TransactionDetailSidePanel"
 import { CreateTransactionWizard } from "./CreateTransactionWizard"
 import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
-<<<<<<< HEAD
-=======
 import { ManageCollaboratorsModal } from "../../Clients/components/ManageCollaboratorsModal"
 import {
   DropdownMenu,
@@ -44,7 +42,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu"
 import { MoreHorizontal, Settings } from "lucide-react"
->>>>>>> dbf20ce4 (Feat: Redesign Collaborator Management Interface (High-Fidelity) - Added action menu, segmentation logic, and integrated premium management modals across Client/Transaction modules.)
 import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
 
 import { GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS } from "../../Clients/mockData"
@@ -123,16 +120,7 @@ const mockTransactions: Transaction[] = [
   }
 ];
 
-type CollaboratorType = 'tc' | 'lender' | 'vendor' | 'va';
 
-const getCollabType = (role: string): CollaboratorType => {
-  const r = role.toLowerCase()
-  if (r.includes('tc') || r.includes('t.c')) return 'tc'
-  if (r.includes('lender')) return 'lender'
-  if (r.includes('vendor')) return 'vendor'
-  if (r.includes('va')) return 'va'
-  return 'tc'
-}
 
 
 export function TransactionsPage() {
@@ -145,9 +133,9 @@ export function TransactionsPage() {
   const [isClientDetailOpen, setIsClientDetailOpen] = React.useState(false)
   const [selectedTxId, setSelectedTxId] = React.useState<string | undefined>()
   const [selectedTx, setSelectedTx] = React.useState<Transaction | undefined>()
-  const [selectedClient, setSelectedClient] = React.useState<any>(null)
+  const [selectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
-  const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
+  const [localAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
 
   const { isCollaborator, selectedTransaction, canInvite } = useRole()
 
@@ -306,10 +294,7 @@ export function TransactionsPage() {
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purchase Price <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
-<<<<<<< HEAD
-=======
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Agent Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
->>>>>>> dbf20ce4 (Feat: Redesign Collaborator Management Interface (High-Fidelity) - Added action menu, segmentation logic, and integrated premium management modals across Client/Transaction modules.)
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Collaborators <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Acceptance Date <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last updated <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
@@ -357,129 +342,6 @@ export function TransactionsPage() {
               {tx.status}
             </div>
           </TableCell>
-<<<<<<< HEAD
-                         <TableCell 
-                            onClick={(e) => {
-                               e.stopPropagation();
-                               handleOpenClientProfile(tx);
-                            }}
-                         >
-                            <div className="flex flex-col gap-0.5 min-w-[140px] py-1 justify-center">
-                              {/* 0 Collabs Case */}
-                              {tx.collaborators.length === 0 && (
-                                <div className="flex items-center gap-2 h-[18px]">
-                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-                                    None
-                                  </span>
-                                  {canAssign && (
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedTxId(tx.id);
-                                        setIsAssignModalOpen(true);
-                                      }}
-                                      className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                                    >
-                                      <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* 1 Collab Case */}
-                              {tx.collaborators.length === 1 && (
-                                <div className="flex items-center gap-2 h-[18px]">
-                                  <div className="flex items-center gap-1.5 overflow-hidden">
-                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                      {tx.collaborators[0].name}
-                                    </span>
-                                    <TypeBadge type={getCollabType(tx.collaborators[0].role)} className="h-[14px] px-1 text-[7px]" />
-                                  </div>
-                                  {canAssign && (
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedTxId(tx.id);
-                                        setIsAssignModalOpen(true);
-                                      }}
-                                      className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                                    >
-                                      <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* 2 Collabs Case */}
-                              {tx.collaborators.length === 2 && (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center gap-1.5 h-[18px]">
-                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                      {tx.collaborators[1].name}
-                                    </span>
-                                    <TypeBadge type={getCollabType(tx.collaborators[1].role)} className="h-[14px] px-1 text-[7px]" />
-                                  </div>
-                                  <div className="flex items-center gap-2 h-[18px]">
-                                    <div className="flex items-center gap-1.5 overflow-hidden">
-                                      <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                        {tx.collaborators[0].name}
-                                      </span>
-                                      <TypeBadge type={getCollabType(tx.collaborators[0].role)} className="h-[14px] px-1 text-[7px]" />
-                                    </div>
-                                    {canAssign && (
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedTxId(tx.id);
-                                          setIsAssignModalOpen(true);
-                                        }}
-                                        className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                                      >
-                                        <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* 3+ Collabs Case */}
-                              {tx.collaborators.length > 2 && (
-                                <div className="flex flex-col gap-0.5">
-                                  <div className="flex items-center gap-1.5 h-[18px]">
-                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none">
-                                      {tx.collaborators[tx.collaborators.length-1].name}
-                                    </span>
-                                    <TypeBadge type={getCollabType(tx.collaborators[tx.collaborators.length-1].role)} className="h-[14px] px-1 text-[7px]" />
-                                  </div>
-                                  <div className="flex items-center gap-2 h-[18px]">
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setSelectedTx(tx);
-                                        setIsSidePanelOpen(true);
-                                      }}
-                                      className="text-[10px] font-bold text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.05em] transition-colors leading-none"
-                                    >
-                                      {tx.collaborators.length - 1} more
-                                    </button>
-                                    {canAssign && (
-                                      <button 
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedTxId(tx.id);
-                                          setIsAssignModalOpen(true);
-                                        }}
-                                        className="h-5 w-5 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center text-[#5A5FF2] hover:bg-[#5A5FF2] hover:text-white transition-all shadow-sm"
-                                      >
-                                        <Plus className="h-2.5 w-2.5 stroke-[4px]" />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                         </TableCell>
-=======
                           <TableCell>
                              <div className="flex flex-col">
                                 <span className="text-[13px] font-semibold text-[#1f2937] leading-tight">{tx.agentName}</span>
@@ -568,7 +430,6 @@ export function TransactionsPage() {
                               </DropdownMenu>
                             </div>
                           </TableCell>
->>>>>>> dbf20ce4 (Feat: Redesign Collaborator Management Interface (High-Fidelity) - Added action menu, segmentation logic, and integrated premium management modals across Client/Transaction modules.)
                          <TableCell className="text-[12px] text-[#1f2937] font-medium">
                             {tx.acceptanceDate}
                          </TableCell>
@@ -700,8 +561,8 @@ export function TransactionsPage() {
         setIsManageModalOpen(false);
       }}
       onUpdateAccess={() => toast.info("Access updated in context")}
-      onAssign={(collabId, type, txnIds) => {
-        const collab = GLOBAL_COLLABORATOR_POOL.find(c => c.id === collabId);
+      onAssign={(collabId, _type, txnIds) => {
+        const collab = GLOBAL_COLLABORATOR_POOL.find(c => collabId === c.id);
         if (collab) {
           setTransactions(prev => prev.map(t => (txnIds || [selectedTx.id]).includes(t.id) ? { ...t, collaborators: [...t.collaborators, { id: collab.id, name: collab.name, role: collab.type.toUpperCase(), status: 'active' }] } : t));
         }
