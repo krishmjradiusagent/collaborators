@@ -200,6 +200,7 @@ export function ClientListPage({ }: ClientListPageProps) {
             onUpdateAccess={handleUpdateAccess}
             onAssign={handleAssignSuccess}
             onOpenInvite={() => setIsInviteModalOpen(true)}
+            isGlobal={true}
           />
         )}
 

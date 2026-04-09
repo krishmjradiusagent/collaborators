@@ -63,27 +63,25 @@ const mockTransactions: Transaction[] = [
     lastUpdated: "April 6, 2024\n12:26 AM",
     closeOfEscrow: "April 6, 2024",
     collaborators: [
-      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" },
-      { id: "c-2", name: "Robert Fox", role: "Lender", status: "active" },
-      { id: "c-3", name: "Jessica Taylor", role: "Co-Agent", status: "invited" }
+      { id: "c1", name: "Sarah Johnson", role: "T.C." },
+      { id: "c2", name: "Robert Martinez", role: "Lender" }
     ]
   },
   {
-    id: "tx-2",
-    address: "654 Cedar St, Seattle, West End",
+    id: "t2",
+    address: "456 Castro Avenue",
     addressLine2: "Denver, CO",
     clientType: "Seller",
     clientName: "Sophia Brown",
     subClientName: "Sophia Brown",
-    purchasePrice: 400000,
-    status: "Pending signature",
-    agentName: "Jessica Taylor",
+    purchasePrice: 980000,
+    status: "Listing Prepped",
+    agentName: "Any Williams",
     acceptanceDate: "-",
     lastUpdated: "April 6, 2024\n12:26 AM",
     closeOfEscrow: "-",
     collaborators: [
-      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" },
-      { id: "c-4", name: "Emily Davis", role: "Assistant", status: "active" }
+      { id: "c1", name: "Sarah Johnson", role: "T.C." }
     ]
   },
   {
@@ -115,7 +113,7 @@ const mockTransactions: Transaction[] = [
     lastUpdated: "April 6, 2024\n12:26 AM",
     closeOfEscrow: "April 7, 2024",
     collaborators: [
-      { id: "c-1", name: "Sarah Miller", role: "T.C.", status: "active" }
+      { id: "c1", name: "Sarah Johnson", role: "T.C." }
     ]
   }
 ];
@@ -135,7 +133,7 @@ export function TransactionsPage() {
   const [selectedTx, setSelectedTx] = React.useState<Transaction | undefined>()
   const [selectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
-  const [localAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
+  const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
 
   const { isCollaborator, selectedTransaction, canInvite } = useRole()
 
@@ -383,9 +381,9 @@ export function TransactionsPage() {
                                           setSelectedTx(tx);
                                           setIsManageModalOpen(true);
                                         }}
-                                        className="text-[10px] font-bold text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.05em] transition-colors leading-none"
+                                        className="text-[9px] font-medium text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.06em] transition-colors leading-none"
                                       >
-                                        {tx.collaborators.length - 1} more
+                                        {tx.collaborators.length - 1} MORE
                                       </button>
                                     </div>
                                   </>
@@ -560,11 +558,34 @@ export function TransactionsPage() {
         setTransactions(prev => prev.map(t => t.id === selectedTx.id ? { ...t, collaborators: [] } : t));
         setIsManageModalOpen(false);
       }}
-      onUpdateAccess={() => toast.info("Access updated in context")}
-      onAssign={(collabId, _type, txnIds) => {
+      onUpdateAccess={(_id, newType) => {
+        if (newType === 'client') {
+            toast.success("Access Level Updated", {
+                description: `Collaborator upgraded to Client Level access.`,
+                className: "bg-[#5A5FF2] text-white",
+            });
+        }
+      }}
+      onAssign={(collabId, type, txnIds) => {
+        const ids = txnIds || [selectedTx.id];
         const collab = GLOBAL_COLLABORATOR_POOL.find(c => collabId === c.id);
+        
         if (collab) {
-          setTransactions(prev => prev.map(t => (txnIds || [selectedTx.id]).includes(t.id) ? { ...t, collaborators: [...t.collaborators, { id: collab.id, name: collab.name, role: collab.type.toUpperCase(), status: 'active' }] } : t));
+          // Update transactions for the table view
+          setTransactions(prev => prev.map(t => ids.includes(t.id) ? { ...t, collaborators: [...t.collaborators, { id: collab.id, name: collab.name, role: collab.type.toUpperCase(), status: 'active' }] } : t));
+          
+          // Update assignments for the modal view
+          setLocalAssignments(prev => [
+            ...prev,
+            ...ids.map(tid => ({
+              id: `a-${Date.now()}-${tid}`,
+              clientId: '1',
+              collaboratorId: collabId,
+              transactionId: tid,
+              assignmentType: type,
+              assignedAt: new Date().toISOString()
+            }))
+          ]);
         }
       }}
       onOpenInvite={() => setIsInviteModalOpen(true)}
