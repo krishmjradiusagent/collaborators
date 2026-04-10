@@ -12,3 +12,8 @@ packages/web/node_modules
 packages/shared/node_modules
 packages/shared/dist
 build
+
+# Switchboard kanban database — machine-local, do not commit.
+.switchboard/kanban.db
+.switchboard/*.db-shm
+.switchboard/*.db-wal

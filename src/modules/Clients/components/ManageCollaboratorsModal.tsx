@@ -32,6 +32,7 @@ interface ManageCollaboratorsModalProps {
   onAssign: (collabId: string, type: 'client' | 'transaction', transactionIds?: string[]) => void
   onOpenInvite: () => void
   isGlobal?: boolean
+  contextType?: 'client' | 'transaction'
 }
 
 export function ManageCollaboratorsModal({
@@ -45,9 +46,9 @@ export function ManageCollaboratorsModal({
   onRemove,
   onUpdateAccess,
   onRemoveAll,
-  onAssign,
   onOpenInvite,
-  isGlobal = false
+  isGlobal = false,
+  contextType = 'client'
 }: ManageCollaboratorsModalProps) {
   const [isSubmitting, setIsSubmitting] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -95,7 +96,7 @@ export function ManageCollaboratorsModal({
           <DialogHeader className="flex flex-row items-center justify-between space-y-0">
             <div className="space-y-0.5 text-left">
               <DialogTitle className="text-xl font-bold text-[#171717] tracking-tight flex items-center gap-2">
-                Team Access
+                Manage
                 <Badge variant="brand" className="h-5 px-1.5 rounded-md text-[9px]">{assignedCollabs.length}</Badge>
               </DialogTitle>
               <DialogDescription id="manage-collabs-description" className="text-slate-400 font-medium text-[12px]">
@@ -223,7 +224,7 @@ export function ManageCollaboratorsModal({
                             <h4 className="font-bold text-[14px] text-[#171717]">{collab.name}</h4>
                             <div className="flex items-center gap-2 mt-0.5">
                               <Badge variant="slate" className="h-4 px-1.5 rounded text-[8px] font-black tracking-wider uppercase">{collab.role}</Badge>
-                              {!isClientAccess ? (
+                              {contextType === 'client' && !isClientAccess && (
                                 <button 
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -233,7 +234,8 @@ export function ManageCollaboratorsModal({
                                 >
                                   <ArrowUpCircle className="size-3" /> Upgrade to Client
                                 </button>
-                              ) : (
+                              )}
+                              {isClientAccess && (
                                 <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wide flex items-center gap-1">
                                   <Check className="size-2.5" /> Full access
                                 </span>
@@ -310,6 +312,22 @@ export function ManageCollaboratorsModal({
                                )}
                             </div>
                           )}
+                          {contextType === 'client' && !isClientAccess && (
+                             <div className="flex flex-col gap-1 mt-2 pl-1">
+                               <p className="text-[10px] text-slate-400">
+                                 Want to add transaction?{" "}
+                                 <button 
+                                   onClick={() => {
+                                     toast.info("Opening Transaction View", { icon: "🏘️" });
+                                     // In a real app, this would route to transaction list or open that modal
+                                   }}
+                                   className="text-[#5A5FF2] hover:underline font-bold"
+                                 >
+                                   Click here
+                                 </button>
+                               </p>
+                             </div>
+                           )}
                         </div>
                         <div className="flex items-center gap-1.5">
                            <span className={cn(

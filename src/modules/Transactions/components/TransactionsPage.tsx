@@ -13,9 +13,12 @@ import {
   User,
   ArrowUpRight,
 } from "lucide-react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { Checkbox } from "@/components/ui/Checkbox"
 import { Button } from "@/components/ui/Button"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
+import { ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Badge } from "@/components/ui/Badge"
 import {
@@ -131,6 +134,7 @@ export function TransactionsPage() {
   const [isClientDetailOpen, setIsClientDetailOpen] = React.useState(false)
   const [selectedTxId, setSelectedTxId] = React.useState<string | undefined>()
   const [selectedTx, setSelectedTx] = React.useState<Transaction | undefined>()
+  const [selectedIds, setSelectedIds] = React.useState<string[]>([])
   const [selectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
@@ -282,12 +286,69 @@ export function TransactionsPage() {
             <button className="text-[#EF4444] text-[14px] font-medium px-4 hover:underline">Clear all</button>
           </div>
 
+          {/* Heritage Bulk Selection Bar */}
+          <AnimatePresence>
+            {selectedIds.length > 0 && (
+              <motion.div 
+                initial={{ opacity: 0, y: -20, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.98 }}
+                transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+                className="flex items-center justify-between bg-[#171717] rounded-[30px] p-3 shadow-2xl ring-1 ring-white/10 mb-6"
+              >
+                <div className="flex items-center gap-4 pl-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="flex items-center justify-center size-7 rounded-full bg-[#5A5FF2] text-white text-[13px] font-black shadow-lg shadow-[#5A5FF2]/30">
+                      {selectedIds.length}
+                    </span>
+                    <span className="text-[14px] font-black text-white uppercase tracking-widest">
+                      Transactions Selected
+                    </span>
+                  </div>
+                  <div className="h-4 w-px bg-white/10 mx-2" />
+                  <button 
+                    onClick={() => setSelectedIds([])}
+                    className="text-[12px] font-bold text-white/50 hover:text-white transition-colors uppercase tracking-[0.1em]"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 pr-1">
+                  <Button 
+                    onClick={() => {
+                      setSelectedTxId(selectedIds[0]); // Default to first selected for management context
+                      setIsAssignModalOpen(true);
+                    }}
+                    className="bg-[#5A5FF2] hover:bg-[#4B50D9] text-white rounded-[30px] px-8 h-12 font-black text-[14px] gap-3 shadow-xl shadow-[#5A5FF2]/20 border-none active:scale-95 transition-all group/bulk-btn"
+                  >
+                    <Plus className="size-5 stroke-[4px] group-hover:rotate-90 transition-transform" />
+                    Assign Collaborator
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Data Table */}
           <div className="border border-slate-100 rounded-[12px] overflow-hidden">
             <Table>
               <TableHeader className="bg-[#F9FAFB]">
                 <TableRow className="hover:bg-transparent border-b border-slate-100 h-10">
-                  <TableHead className="pl-6 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Property Address <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                  <TableHead className="w-12 pl-6">
+                    <Checkbox 
+                      checked={selectedIds.length === displayedTransactions.length && displayedTransactions.length > 0}
+                      onCheckedChange={() => {
+                        if (selectedIds.length === displayedTransactions.length) {
+                          setSelectedIds([]);
+                        } else {
+                          setSelectedIds(displayedTransactions.map(t => t.id));
+                        }
+                      }}
+                      className="border-slate-300 data-[state=checked]:bg-[#5A5FF2] data-[state=checked]:border-[#5A5FF2]"
+                    />
+                  </TableHead>
+                  <TableHead className="pl-0 text-[10px] uppercase font-bold text-slate-500 tracking-wider">Property Address <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Type <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Client Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purchase Price <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
@@ -310,7 +371,18 @@ export function TransactionsPage() {
             setIsSidePanelOpen(true);
           }}
         >
-          <TableCell className="pl-6 py-3">
+          <TableCell className="pl-6 w-12" onClick={(e) => e.stopPropagation()}>
+            <Checkbox 
+              checked={selectedIds.includes(tx.id)}
+              onCheckedChange={() => {
+                setSelectedIds(prev => 
+                  prev.includes(tx.id) ? prev.filter(id => id !== tx.id) : [...prev, tx.id]
+                );
+              }}
+              className="border-slate-300 data-[state=checked]:bg-[#5A5FF2] data-[state=checked]:border-[#5A5FF2]"
+            />
+          </TableCell>
+          <TableCell className="pl-0 py-3">
             <div className="flex flex-col">
               <span className="text-[12px] font-medium text-[#5a5ff2] underline leading-tight decoration-[#5a5ff2]/30 hover:decoration-[#5a5ff2] truncate max-w-[200px]">{tx.address}</span>
               {tx.addressLine2 && <span className="text-[11px] text-[#5a5ff2] underline decoration-[#5a5ff2]/30 hover:decoration-[#5a5ff2]">{tx.addressLine2}</span>}
@@ -347,85 +419,49 @@ export function TransactionsPage() {
                              </div>
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-between min-w-[200px] group/collab">
-                              <div className="flex flex-col gap-0.5 justify-center py-1">
-                                {tx.collaborators.length === 0 && (
-                                  <div className="flex items-center gap-2 h-[18px]">
-                                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest leading-none">
-                                      None
-                                    </span>
-                                  </div>
-                                )}
-
-                                {tx.collaborators.length === 1 && (
-                                  <div className="flex items-center gap-1.5 h-[18px]">
-                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[100px]">
-                                      {tx.collaborators[0].name}
-                                    </span>
-                                    <TypeBadge type={tx.collaborators[0].role.toLowerCase().replace('.', '') as any} className="h-[14px] px-1 text-[7px]" />
-                                  </div>
-                                )}
-
-                                {tx.collaborators.length >= 2 && (
-                                  <>
-                                    <div className="flex items-center gap-1.5 h-[18px]">
-                                      <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[100px]">
-                                        {tx.collaborators[tx.collaborators.length - 1].name}
-                                      </span>
-                                      <TypeBadge type={tx.collaborators[tx.collaborators.length - 1].role.toLowerCase().replace('.', '') as any} className="h-[14px] px-1 text-[7px]" />
-                                    </div>
-                                    <div className="flex items-center gap-2 h-[18px]">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setSelectedTx(tx);
-                                          setIsManageModalOpen(true);
-                                        }}
-                                        className="text-[9px] font-medium text-slate-400 hover:text-[#5A5FF2] uppercase tracking-[0.06em] transition-colors leading-none"
-                                      >
-                                        {tx.collaborators.length - 1} MORE
-                                      </button>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <button className="h-8 w-8 rounded-full flex items-center justify-center text-slate-300 hover:text-[#5A5FF2] hover:bg-[#5A5FF2]/10 transition-all opacity-0 group-hover/collab:opacity-100 data-[state=open]:opacity-100">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-[180px] rounded-[16px] p-1.5 border-slate-100 shadow-[0px_10px_30px_rgba(0,0,0,0.1)]">
-                                  <DropdownMenuItem 
-                                    className="rounded-xl font-bold text-[#171717] gap-3 p-3 cursor-pointer"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedTxId(tx.id);
-                                      setIsAssignModalOpen(true);
-                                    }}
-                                  >
-                                    <div className="size-8 rounded-full bg-[#5A5FF2]/10 flex items-center justify-center">
-                                      <Plus className="h-4 w-4 text-[#5A5FF2]" />
-                                    </div>
-                                    Add Collab
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator className="bg-slate-50 mx-1" />
-                                  <DropdownMenuItem 
-                                    className="rounded-xl font-bold text-[#171717] gap-3 p-3 cursor-pointer"
-                                    onClick={(e) => {
+                            <div className="flex flex-col gap-2 min-w-[200px] max-w-[320px] py-1">
+                              {tx.collaborators.slice(0, 2).map((collab, idx, arr) => {
+                                const poolCollab = GLOBAL_COLLABORATOR_POOL.find(c => c.name === collab.name);
+                                return (
+                                  <div key={collab.id} className="flex items-center gap-2 group/collab transition-colors cursor-pointer w-fit" onClick={(e) => {
                                       e.stopPropagation();
                                       setSelectedTx(tx);
                                       setIsManageModalOpen(true);
-                                    }}
-                                  >
-                                    <div className="size-8 rounded-full bg-slate-100 flex items-center justify-center">
-                                      <Settings className="h-4 w-4 text-slate-500" />
-                                    </div>
-                                    Manage
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                                  }}>
+                                    <Avatar className="h-6 w-6">
+                                      {poolCollab?.avatar && <AvatarImage src={poolCollab.avatar} />}
+                                      <AvatarFallback className="text-[10px] bg-[#5A5FF2]/10 text-[#5A5FF2]">{collab.name[0]}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[130px] group-hover/collab:text-[#5A5FF2] transition-colors">{collab.name}</span>
+                                    {poolCollab && <TypeBadge type={poolCollab.type as any} className="h-[14px] px-1.5 text-[8px]" />}
+                                    
+                                    {idx === arr.length - 1 && tx.collaborators.length > 2 && (
+                                      <div className="flex items-center gap-1 bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#5A5FF2] px-2 py-0.5 rounded-full transition-colors ml-1">
+                                        <span className="text-[11px] font-bold">+{tx.collaborators.length - 2}</span>
+                                        <ChevronRight className="h-3 w-3 opacity-80" />
+                                      </div>
+                                    )}
+                                    {idx === arr.length - 1 && tx.collaborators.length <= 2 && (
+                                      <div className="flex items-center justify-center p-0.5 rounded-full hover:bg-slate-100 text-[#5A5FF2] transition-colors ml-1">
+                                        <ChevronRight className="h-4 w-4" />
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+
+                              {tx.collaborators.length === 0 && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedTx(tx);
+                                    setIsManageModalOpen(true);
+                                  }}
+                                  className="text-[13px] font-bold text-[#5A5FF2] underline underline-offset-2 leading-none hover:text-[#4B50D9] transition-colors w-fit"
+                                >
+                                  Assign
+                                </button>
+                              )}
                             </div>
                           </TableCell>
                          <TableCell className="text-[12px] text-[#1f2937] font-medium">
@@ -536,6 +572,7 @@ export function TransactionsPage() {
     <ManageCollaboratorsModal
       open={isManageModalOpen}
       onOpenChange={setIsManageModalOpen}
+      contextType="transaction"
       client={{ id: selectedTx.id, name: selectedTx.address }}
       assignedCollabs={GLOBAL_COLLABORATOR_POOL.filter(c =>
         selectedTx.collaborators.some(ac => ac.name === c.name) // Matching by name in mock
