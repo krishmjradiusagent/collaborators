@@ -45,6 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu"
 import { MoreHorizontal, Settings } from "lucide-react"
+import { TransactionDetailPage } from "./TransactionDetailPage"
 import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
 
 import { GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS } from "../../Clients/mockData"
@@ -131,6 +132,7 @@ export function TransactionsPage() {
   const [isCreateWizardOpen, setIsCreateWizardOpen] = React.useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = React.useState(false)
   const [isSidePanelOpen, setIsSidePanelOpen] = React.useState(false)
+  const [isDetailPageOpen, setIsDetailPageOpen] = React.useState(false)
   const [isClientDetailOpen, setIsClientDetailOpen] = React.useState(false)
   const [selectedTxId, setSelectedTxId] = React.useState<string | undefined>()
   const [selectedTx, setSelectedTx] = React.useState<Transaction | undefined>()
@@ -172,6 +174,19 @@ export function TransactionsPage() {
       case 'Referral': return "bg-[#ffe4e6] text-[#881337] border-[#881337]/10";
       default: return "";
     }
+  }
+
+  if (isDetailPageOpen && selectedTx) {
+    return (
+      <TransactionDetailPage 
+        transaction={selectedTx}
+        onBack={() => setIsDetailPageOpen(false)}
+        onUpdateTransaction={(updatedTx) => {
+          setSelectedTx(updatedTx);
+          setTransactions(prev => prev.map(t => t.id === updatedTx.id ? updatedTx : t));
+        }}
+      />
+    )
   }
 
   return (
@@ -368,7 +383,7 @@ export function TransactionsPage() {
           className="group h-[50px] border-b border-slate-50 hover:bg-slate-50/50 transition-all cursor-pointer"
           onClick={() => {
             setSelectedTx(tx);
-            setIsSidePanelOpen(true);
+            setIsDetailPageOpen(true);
           }}
         >
           <TableCell className="pl-6 w-12" onClick={(e) => e.stopPropagation()}>
@@ -557,10 +572,11 @@ export function TransactionsPage() {
           address: t.address, 
           status: 'Active' as any
         }))}
-        clientName="Transaction Portal"
+        clientName={selectedTx?.address || "Transaction Portal"}
         defaultType="transaction"
-        defaultTransactionId={selectedTxId}
+        defaultTransactionId={selectedTx?.id || selectedTxId}
         canInvite={canInvite}
+        context={isDetailPageOpen ? 'transaction-detail' : 'default'}
       />
       <CreateTransactionWizard 
         open={isCreateWizardOpen}
