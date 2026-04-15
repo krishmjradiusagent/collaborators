@@ -23,6 +23,7 @@ import { Separator } from '@/components/ui/Separator';
 import { Transaction } from '../types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { CollaboratorAvatarStack } from '../../Shared/components/CollaboratorAvatarStack';
 import { AssignCollaboratorModal } from '../../Clients/components/AssignCollaboratorModal';
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
 import { CollaboratorCard } from '../../Clients/components/CollaboratorCard';
@@ -160,26 +161,17 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                       </div>
                       <span className="text-[#111827] text-[16px] font-black tracking-wide uppercase">Collaborators</span>
                       {assignedCollabs.length > 0 && (
-                        <Badge className="bg-[#5a5ff2] hover:bg-[#5a5ff2] text-white text-[12px] h-[22px] px-2 min-w-[22px] flex items-center justify-center rounded-full border-none font-bold">
-                          {assignedCollabs.length}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {canAssign && (
-                        <div 
-                          className="h-9 px-4 rounded-full border border-[#5a5ff2] flex items-center gap-2 hover:bg-[#5a5ff2] hover:text-white text-[#5a5ff2] font-bold text-[13px] transition-all"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsAssignModalOpen(true);
-                          }}
-                        >
-                          <Plus className="size-4" /> Add
+                        <div className="ml-2 scale-90 origin-left" onClick={(e) => e.stopPropagation()}>
+                          <CollaboratorAvatarStack 
+                            collaborators={assignedCollabs}
+                            max={4}
+                            onManage={() => setIsAssignModalOpen(true)}
+                          />
                         </div>
                       )}
-                      <div className={cn("transition-transform duration-300", isCollabExpanded ? "rotate-180" : "")}>
-                         <ChevronDown className="size-6 text-[#111827]" />
-                      </div>
+                    </div>
+                    <div className={cn("transition-transform duration-300", isCollabExpanded ? "rotate-180" : "")}>
+                       <ChevronDown className="size-6 text-[#111827]" />
                     </div>
                   </div>
                   

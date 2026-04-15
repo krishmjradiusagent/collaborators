@@ -17,7 +17,7 @@ export function useCollaborators() {
           c.email.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesType = filterType === "all" || c.type === filterType;
         const matchesStatus = filterStatus === "all" || c.status === filterStatus;
-        return matchesSearch && matchesType && matchesStatus;
+        return matchesSearch && matchesType && matchesStatus && c.status !== "removed";
       })
       .sort((a, b) => {
         // Status priority: Active > Invited > Paused > Removed

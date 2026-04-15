@@ -11,6 +11,8 @@ import { Button } from "./components/ui/Button"
 import { RoleProvider, useRole } from "./contexts/RoleContext"
 import { FloatingRoleToggler } from "./components/RoleSwitcher"
 
+import { TooltipProvider } from "./components/ui/Tooltip"
+
 function AppContent({ activeTab, setActiveTab, selectedClient, setSelectedClient }: any) {
   const { isCollaborator } = useRole()
 
@@ -118,13 +120,15 @@ function App() {
 
   return (
     <RoleProvider>
-      <AppContent 
-         activeTab={activeTab} 
-         setActiveTab={handleSidebarClick} 
-         selectedClient={selectedClient} 
-         setSelectedClient={setSelectedClient} 
-      />
-      <FloatingRoleToggler />
+      <TooltipProvider>
+        <AppContent 
+           activeTab={activeTab} 
+           setActiveTab={handleSidebarClick} 
+           selectedClient={selectedClient} 
+           setSelectedClient={setSelectedClient} 
+        />
+        <FloatingRoleToggler />
+      </TooltipProvider>
     </RoleProvider>
   )
 }

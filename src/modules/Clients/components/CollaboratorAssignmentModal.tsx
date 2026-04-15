@@ -151,7 +151,7 @@ export function CollaboratorAssignmentModal({
                           )}
                         >
                            <div className="flex items-center gap-5">
-                              <div className={cn("size-12 rounded-[18px] flex items-center justify-center shrink-0 transition-all duration-500 group-hover/item:scale-110 group-hover/item:-rotate-6 shadow-sm", ROLE_COLORS[collab.role] || "bg-slate-100 text-slate-400")}>
+                              <div className={cn("size-12 rounded-full flex items-center justify-center shrink-0 transition-all duration-500 group-hover/item:scale-110 group-hover/item:-rotate-6 shadow-sm", ROLE_COLORS[collab.role] || "bg-slate-100 text-slate-400")}>
                                  <RoleIcon className="h-6 w-6 stroke-[2.5px]" />
                               </div>
                               <div className="flex flex-col gap-0.5">

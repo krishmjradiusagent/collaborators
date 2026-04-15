@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,8 +8,13 @@ import {
   Users,
   Briefcase,
   UserPlus,
-  CheckCircle2
+  CheckCircle2,
+  MapPin,
+  ChevronDown,
+  ChevronUp,
+  X
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "../../../../components/ui/Button";
 import {
@@ -20,6 +25,13 @@ import {
   DialogDescription,
 } from "../../../../components/ui/Dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../../components/ui/Select";
+import {
   Form,
   FormControl,
   FormField,
@@ -27,9 +39,7 @@ import {
   FormMessage,
 } from "../../../../components/ui/form";
 import {
-  Field,
   FieldLabel,
-  FieldDescription
 } from "../../../../components/ui/field";
 import { Input } from "../../../../components/ui/Input";
 import { RadioGroup, RadioGroupItem } from "../../../../components/ui/radio-group";
@@ -41,9 +51,15 @@ const formSchema = z.object({
   type: z.enum(["tc", "lender", "vendor", "va"], {
     required_error: "Please select a collaborator type",
   }),
+  vendorType: z.string().optional(),
+  customVendorType: z.string().optional(),
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email format").min(1, "Email is required"),
+  street: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  zip: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,7 +75,7 @@ const TYPES = [
   {
     id: "tc" as CollaboratorType,
     label: "Transaction Coordinator",
-    description: "Manages document flow, transaction coordination",
+    description: "Manages document flow, coordination",
     icon: ShieldCheck,
     color: "text-[#5A5FF2]",
     bgColor: "bg-[#5A5FF2]/10",
@@ -67,7 +83,7 @@ const TYPES = [
   {
     id: "lender" as CollaboratorType,
     label: "Lender",
-    description: "Provides loan documents, funding certifications",
+    description: "Loan docs, funding certs",
     icon: Users,
     color: "text-emerald-600",
     bgColor: "bg-emerald-50",
@@ -75,7 +91,7 @@ const TYPES = [
   {
     id: "vendor" as CollaboratorType,
     label: "Vendor",
-    description: "Inspections, appraisals, title services",
+    description: "Inspections, title services",
     icon: Briefcase,
     color: "text-purple-600",
     bgColor: "bg-purple-50",
@@ -83,11 +99,23 @@ const TYPES = [
   {
     id: "va" as CollaboratorType,
     label: "Virtual Assistant",
-    description: "Administrative support, scheduling",
+    description: "Administrative support",
     icon: UserPlus,
     color: "text-amber-600",
     bgColor: "bg-amber-50",
   },
+];
+
+const VENDOR_TYPES = [
+  "Title & Escrow",
+  "Home Inspection",
+  "Appraisal",
+  "Photography/Media",
+  "Staging",
+  "Cleaning Services",
+  "Insurance",
+  "Notary",
+  "Other"
 ];
 
 export function InviteCollaboratorModal({
@@ -98,6 +126,17 @@ export function InviteCollaboratorModal({
 }: InviteCollaboratorModalProps) {
   const [step, setStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddressExpanded, setIsAddressExpanded] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const addressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isAddressExpanded && addressRef.current) {
+      setTimeout(() => {
+        addressRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }, [isAddressExpanded]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -110,114 +149,99 @@ export function InviteCollaboratorModal({
   });
 
   const selectedType = form.watch("type");
+  const vendorTypeValue = form.watch("vendorType");
 
   const onSubmit = async (data: FormValues) => {
-    // A. Backend Constraint Check: Skip if email exists in global team pool
     if (existingEmails.map(e => e.toLowerCase()).includes(data.email.toLowerCase())) {
-      form.setError("email", {
-        message: "This email is already associated with a collaborator on your team."
-      });
-      toast.error("Duplicate Entry", {
-        description: `${data.email} is already in your collaborator list.`
-      });
+      form.setError("email", { message: "Email already exists on your team." });
+      toast.error("Duplicate Entry");
       return;
     }
 
     setIsSubmitting(true);
-
-    // B. Execution Logic: "Send Secure Invitation"
-    // In a real implementation, this would call a secure cloud function or API endpoint
-    // to create the record and trigger the SendGrid/Postmark notification.
     try {
-      // Simulate Backend Record Creation Sequence:
-      // 1. Map: First Name, Last Name, Business Email
-      // 2. Implicit: Set status to "Invited", Expiration to 7 days
-      // 3. Metadata: Capture team_id and current_user_id
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-
-      // Success Transition
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       onInviteSent(data);
-
-      // UI Feedback: Shadcn Sonner Notification
-      toast.success("Invitation successful", {
-        description: `Link sent to ${data.email}. Access expires in 7 days.`,
-        icon: <CheckCircle2 className="h-5 w-5 text-emerald-500" />,
-        className: "bg-white border-emerald-100",
-      });
-
-      // 3. UI State Transition
+      toast.success("Invitation successful");
       setStep(1);
       form.reset();
+      setIsAddressExpanded(false);
       onOpenChange(false);
     } catch (error) {
-      toast.error("Invitation failed", {
-        description: "There was an error processing the request. Please try again."
-      });
+      toast.error("Invitation failed");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleNext = () => {
-    if (selectedType) {
-      setStep(2);
-    }
+    if (form.getFieldState("type").invalid) return;
+    setStep(2);
   };
-
-  const handleBack = () => {
-    setStep(1);
-  };
+  const handleBack = () => setStep(1);
 
   return (
     <Dialog open={open} onOpenChange={(val) => {
       if (!val) {
         setStep(1);
         form.reset();
+        setIsAddressExpanded(false);
       }
       onOpenChange(val);
     }}>
       <DialogContent
-        className="sm:max-w-[550px] bg-white border-none text-slate-900 p-0 overflow-hidden shadow-2xl rounded-[40px] z-[9999]"
+        className="sm:max-w-[500px] bg-white text-slate-900 p-0 shadow-[0px_20px_60px_rgba(0,0,0,0.1)] rounded-[40px] z-[9999] border-none flex flex-col max-h-[90vh] overflow-hidden"
         overlayClassName="z-[9999]"
       >
-        <div className="p-12">
-          <DialogHeader className="mb-10 text-left">
-            <div className="mb-6 flex">
+        <div className="p-10 pb-0 shrink-0 relative">
+          <button 
+             onClick={() => onOpenChange(false)}
+             className="absolute top-6 right-8 size-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 z-10"
+          >
+            <X className="size-5" />
+          </button>
+          
+          <DialogHeader className="mb-6">
+            <div className="mb-5 flex">
               <div className={cn(
-                "h-16 w-16 rounded-2xl flex items-center justify-center transition-colors duration-500",
-                step === 1 ? "bg-blue-50 text-blue-600" : (TYPES.find(t => t.id === selectedType)?.bgColor || "bg-blue-50 text-blue-600")
+                "h-14 w-14 rounded-2xl flex items-center justify-center transition-colors duration-500 shadow-sm",
+                step === 1 ? "bg-[#5A5FF2]/10 text-[#5A5FF2]" : (TYPES.find(t => t.id === selectedType)?.bgColor || "bg-[#5A5FF2]/10")
               )}>
                 {step === 1 ? (
-                  <UserPlus className="h-8 w-8" />
+                  <UserPlus className="h-7 w-7" />
                 ) : (
                   (() => {
                     const TIcon = TYPES.find(t => t.id === selectedType)?.icon || UserPlus;
-                    return <TIcon className={cn("h-8 w-8", TYPES.find(t => t.id === selectedType)?.color)} />;
+                    return <TIcon className={cn("h-7 w-7", TYPES.find(t => t.id === selectedType)?.color)} />;
                   })()
                 )}
               </div>
             </div>
 
-            <DialogTitle className="text-3xl font-bold tracking-tight text-slate-900 leading-tight">
-              {step === 1 ? "Add Collaborator to Network" : `Invite ${TYPES.find(t => t.id === selectedType)?.label}`}
+            <DialogTitle className="text-3xl font-black tracking-tight text-[#171717] leading-tight">
+              {step === 1 ? "Add Collaborator" : `Invite ${TYPES.find(t => t.id === selectedType)?.label}`}
             </DialogTitle>
 
-            <DialogDescription className="text-slate-500 font-medium text-[16px] mt-3">
-              {step === 1
-                ? "Which role are you adding to your team network? You cannot change this later."
-                : "Enter their professional details to send the secure access link."
-              }
+            <DialogDescription className="text-slate-500 font-medium">
+              {step === 1 
+              ? "Choose who you'd like to invite." 
+              : "Enter details for the invitation."}
             </DialogDescription>
           </DialogHeader>
+        </div>
 
+        <div 
+          ref={scrollContainerRef} 
+          className="flex-1 overflow-y-auto px-10 hide-scrollbar"
+        >
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-10">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pt-2">
               {step === 1 ? (
                 <FormField
                   control={form.control}
                   name="type"
                   render={({ field }) => (
-                    <FormItem className="space-y-4">
+                    <FormItem className="space-y-3">
                       <FormControl>
                         <RadioGroup
                           onValueChange={field.onChange}
@@ -228,56 +252,40 @@ export function InviteCollaboratorModal({
                             <Label
                               key={type.id}
                               className={cn(
-                                "flex items-start gap-4 p-4 rounded-2xl border transition-all duration-300 relative group",
+                                "flex items-start gap-4 p-4 rounded-3xl border-2 transition-all duration-300 relative group cursor-pointer",
                                 field.value === type.id
-                                  ? "border-blue-500 bg-white shadow-lg ring-1 ring-blue-500/20"
-                                  : "border-slate-100 bg-slate-50/30 hover:border-slate-200 hover:bg-slate-50"
+                                  ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-sm"
+                                  : "border-slate-50 bg-white hover:border-slate-100 hover:bg-slate-50/50"
                               )}
                             >
                               <RadioGroupItem value={type.id} className="sr-only" />
-                              <div className={cn("p-3 rounded-xl shrink-0 transition-transform duration-300 group-hover:rotate-6", type.bgColor)}>
+                              <div className={cn("p-2.5 rounded-xl shrink-0 transition-all group-hover:scale-110", type.bgColor)}>
                                 <type.icon className={cn("h-5 w-5", type.color)} />
                               </div>
-                              <div className="space-y-1">
-                                <p className="font-bold text-[16px] text-slate-900">{type.label}</p>
+                              <div className="space-y-0.5 pt-0.5">
+                                <p className="font-bold text-[15px] text-slate-900">{type.label}</p>
                                 <p className="text-[13px] text-slate-500 font-medium leading-relaxed">
                                   {type.description}
                                 </p>
                               </div>
-                              {field.value === type.id && (
-                                <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                                  <CheckCircle2 className="h-6 w-6 text-blue-600" />
-                                </div>
-                              )}
                             </Label>
                           ))}
                         </RadioGroup>
                       </FormControl>
-                      <FormMessage className="text-red-500 font-bold text-xs uppercase tracking-wider" />
+                      <FormMessage className="text-red-500 font-bold text-[11px] uppercase pl-1" />
                     </FormItem>
                   )}
                 />
               ) : (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="firstName"
                       render={({ field: formField }) => (
                         <FormItem>
-                          <Field>
-                            <FieldLabel htmlFor="firstName">First Name</FieldLabel>
-                            <FormControl>
-                              <Input
-                                id="firstName"
-                                placeholder="e.g. Jane"
-                                className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                                {...formField}
-                                autoFocus
-                              />
-                            </FormControl>
-                            <FormMessage className="text-red-500 font-bold text-[10px] uppercase tracking-widest pl-1" />
-                          </Field>
+                          <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">First Name</FieldLabel>
+                          <Input placeholder="e.g. Jane" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
                         </FormItem>
                       )}
                     />
@@ -286,18 +294,8 @@ export function InviteCollaboratorModal({
                       name="lastName"
                       render={({ field: formField }) => (
                         <FormItem>
-                          <Field>
-                            <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
-                            <FormControl>
-                              <Input
-                                id="lastName"
-                                placeholder="e.g. Cooper"
-                                className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                                {...formField}
-                              />
-                            </FormControl>
-                            <FormMessage className="text-red-500 font-bold text-[10px] uppercase tracking-widest pl-1" />
-                          </Field>
+                          <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Last Name</FieldLabel>
+                          <Input placeholder="e.g. Cooper" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
                         </FormItem>
                       )}
                     />
@@ -308,75 +306,160 @@ export function InviteCollaboratorModal({
                     name="email"
                     render={({ field: formField }) => (
                       <FormItem>
-                        <Field>
-                          <FieldLabel htmlFor="email">Business Email</FieldLabel>
-                          <FormControl>
-                            <Input
-                              id="email"
-                              placeholder="jane@radiusagent.com"
-                              className="bg-white border border-slate-200 h-11 text-[14px] focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all rounded-xl shadow-sm placeholder:text-slate-300 px-4"
-                              {...formField}
-                            />
-                          </FormControl>
-                          <FormMessage className="text-red-500 font-bold text-[10px] uppercase tracking-widest pl-1" />
-                        </Field>
+                        <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Business Email</FieldLabel>
+                        <Input placeholder="jane@radiusagent.com" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
                       </FormItem>
                     )}
                   />
 
-                  <div className="bg-blue-50/20 border border-blue-100/50 p-5 rounded-2xl flex items-start gap-4 mt-2">
-                    <div className="p-2.5 rounded-lg bg-white border border-blue-100 shadow-sm text-primary">
-                      <ShieldCheck className="h-4 w-4" />
-                    </div>
-                    <Field className="gap-0.5">
-                      <FieldLabel className="text-[13px] text-slate-700 font-bold leading-none mb-1">Secure Access</FieldLabel>
-                      <FieldDescription className="text-[12px] text-slate-500 leading-relaxed font-medium">
-                        Invitations expire in <span className="text-[#5A5FF2] font-bold">7 days</span>. Reminders will be automated.
-                      </FieldDescription>
-                    </Field>
+                  {selectedType === "vendor" && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-4"
+                    >
+                      <FormField
+                        control={form.control}
+                        name="vendorType"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Vendor Type</FieldLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <FormControl>
+                                <SelectTrigger className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4 font-medium transition-all">
+                                  <SelectValue placeholder="Select service category" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-white border-slate-100 shadow-2xl rounded-2xl p-2 z-[10000]">
+                                {VENDOR_TYPES.map((type) => (
+                                  <SelectItem key={type} value={type} className="p-3 rounded-xl focus:bg-[#5A5FF2]/5 focus:text-[#5A5FF2] cursor-pointer font-bold text-[14px]">
+                                    {type}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <AnimatePresence>
+                        {vendorTypeValue === "Other" && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <FormField
+                              control={form.control}
+                              name="customVendorType"
+                              render={({ field }) => (
+                                <FormItem className="pt-1">
+                                  <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Custom Category Name</FieldLabel>
+                                  <Input placeholder="e.g. Solar Consultant" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...field} />
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )}
+
+                  <div className="pt-2" ref={addressRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsAddressExpanded(!isAddressExpanded)}
+                      className="flex items-center gap-1.5 text-[13px] font-black text-[#5A5FF2] hover:opacity-80 transition-opacity ml-1 bg-[#5A5FF2]/5 px-3 py-1.5 rounded-full"
+                    >
+                      <MapPin className="h-4 w-4" />
+                      {isAddressExpanded ? "Hide Address Details" : "Add Address Details (Optional)"}
+                      <ChevronDown className={cn("h-4 w-4 transition-transform", isAddressExpanded && "rotate-180")} />
+                    </button>
+                    
+                    <AnimatePresence>
+                      {isAddressExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="grid grid-cols-4 gap-3 pt-4">
+                            <FormField
+                              control={form.control}
+                              name="street"
+                              render={({ field: formField }) => (
+                                <FormItem className="col-span-4">
+                                  <Input placeholder="Street Address" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="city"
+                              render={({ field: formField }) => (
+                                <FormItem className="col-span-2">
+                                  <Input placeholder="City" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="state"
+                              render={({ field: formField }) => (
+                                <FormItem className="col-span-1">
+                                  <Input placeholder="State" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
+                              name="zip"
+                              render={({ field: formField }) => (
+                                <FormItem className="col-span-1">
+                                  <Input placeholder="ZIP" className="h-12 bg-[#F8FAFC] border-none rounded-2xl px-4" {...formField} />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               )}
-
-              <div className="flex gap-4 pt-6">
-                {(step === 2 || selectedType) && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="flex-1 h-14 bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-[30px] font-bold transition-all"
-                    onClick={step === 1 ? () => onOpenChange(false) : handleBack}
-                    disabled={isSubmitting}
-                  >
-                    {step === 1 ? "Cancel" : "Back"}
-                  </Button>
-                )}
-
-                {step === 1 ? (
-                  <Button
-                    type="button"
-                    className="flex-1 h-14 bg-[#5A5FF2] hover:bg-[#5A5FF2]/90 text-white font-bold rounded-[30px] shadow-xl shadow-[#5A5FF2]/20 transition-all active:scale-95"
-                    onClick={handleNext}
-                    disabled={!selectedType}
-                  >
-                    Continue
-                  </Button>
-                ) : (
-                  <Button
-                    type="submit"
-                    className="flex-1 h-14 bg-[#5A5FF2] hover:bg-[#5A5FF2]/90 text-white font-bold rounded-[30px] shadow-xl shadow-[#5A5FF2]/20 transition-all active:scale-95"
-                    disabled={isSubmitting || !form.watch("email")}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Processing...
-                      </>
-                    ) : "Send Secure Invitation"}
-                  </Button>
-                )}
-              </div>
             </form>
           </Form>
+        </div>
+
+        <div className="p-10 pt-6 border-t border-slate-50 shrink-0 bg-white/80 backdrop-blur-sm">
+          <div className="flex gap-4">
+            {(step === 2 || selectedType) && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="flex-1 h-14 text-slate-400 rounded-3xl font-black hover:bg-slate-50 transition-all text-[14px]"
+                onClick={step === 1 ? () => onOpenChange(false) : handleBack}
+                disabled={isSubmitting}
+              >
+                {step === 1 ? "Cancel" : "Back"}
+              </Button>
+            )}
+
+            <Button
+              type={step === 1 ? "button" : "submit"}
+              className="flex-[2] h-14 bg-[#5A5FF2] hover:bg-[#4B50D9] text-white font-black rounded-3xl shadow-2xl shadow-[#5A5FF2]/20 transition-all text-[14px] active:scale-95"
+              onClick={step === 1 ? handleNext : () => form.handleSubmit(onSubmit)()}
+              disabled={isSubmitting || (step === 2 && !form.watch("email"))}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : step === 1 ? "Continue" : "Send Invitation"}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

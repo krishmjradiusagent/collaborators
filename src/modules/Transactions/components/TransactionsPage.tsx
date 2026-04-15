@@ -12,15 +12,16 @@ import {
   Home,
   User,
   ArrowUpRight,
+  ChevronRight,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 import { Checkbox } from "@/components/ui/Checkbox"
 import { Button } from "@/components/ui/Button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
-import { ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/Input"
 import { Badge } from "@/components/ui/Badge"
+import { CollaboratorAvatarStack } from "../../Shared/components/CollaboratorAvatarStack"
 import {
   Table,
   TableBody,
@@ -433,52 +434,15 @@ export function TransactionsPage() {
                                 <span className="text-[11px] text-slate-400 font-medium tracking-wide border-b border-dotted border-slate-200 w-fit">Primary Agent</span>
                              </div>
                           </TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <div className="flex flex-col gap-2 min-w-[200px] max-w-[320px] py-1">
-                              {tx.collaborators.slice(0, 2).map((collab, idx, arr) => {
-                                const poolCollab = GLOBAL_COLLABORATOR_POOL.find(c => c.name === collab.name);
-                                return (
-                                  <div key={collab.id} className="flex items-center gap-2 group/collab transition-colors cursor-pointer w-fit" onClick={(e) => {
-                                      e.stopPropagation();
-                                      setSelectedTx(tx);
-                                      setIsManageModalOpen(true);
-                                  }}>
-                                    <Avatar className="h-6 w-6">
-                                      {poolCollab?.avatar && <AvatarImage src={poolCollab.avatar} />}
-                                      <AvatarFallback className="text-[10px] bg-[#5A5FF2]/10 text-[#5A5FF2]">{collab.name[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[130px] group-hover/collab:text-[#5A5FF2] transition-colors">{collab.name}</span>
-                                    {poolCollab && <TypeBadge type={poolCollab.type as any} className="h-[14px] px-1.5 text-[8px]" />}
-                                    
-                                    {idx === arr.length - 1 && tx.collaborators.length > 2 && (
-                                      <div className="flex items-center gap-1 bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#5A5FF2] px-2 py-0.5 rounded-full transition-colors ml-1">
-                                        <span className="text-[11px] font-bold">+{tx.collaborators.length - 2}</span>
-                                        <ChevronRight className="h-3 w-3 opacity-80" />
-                                      </div>
-                                    )}
-                                    {idx === arr.length - 1 && tx.collaborators.length <= 2 && (
-                                      <div className="flex items-center justify-center p-0.5 rounded-full hover:bg-slate-100 text-[#5A5FF2] transition-colors ml-1">
-                                        <ChevronRight className="h-4 w-4" />
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-
-                              {tx.collaborators.length === 0 && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedTx(tx);
-                                    setIsManageModalOpen(true);
-                                  }}
-                                  className="text-[13px] font-bold text-[#5A5FF2] underline underline-offset-2 leading-none hover:text-[#4B50D9] transition-colors w-fit"
-                                >
-                                  Assign
-                                </button>
-                              )}
-                            </div>
-                          </TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <CollaboratorAvatarStack 
+                        collaborators={tx.collaborators}
+                        onManage={() => {
+                          setSelectedTx(tx);
+                          setIsManageModalOpen(true);
+                        }}
+                      />
+                    </TableCell>
                          <TableCell className="text-[12px] text-[#1f2937] font-medium">
                             {tx.acceptanceDate}
                          </TableCell>

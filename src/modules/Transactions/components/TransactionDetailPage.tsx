@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/Badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
 import { Separator } from "@/components/ui/Separator"
+import { CollaboratorAvatarStack } from "../../Shared/components/CollaboratorAvatarStack"
 import { Transaction, Collaborator } from "../types"
 import { AssignCollaboratorModal } from "../../Clients/components/AssignCollaboratorModal"
 import { GLOBAL_COLLABORATOR_POOL } from "../../Clients/mockData"
@@ -104,29 +105,15 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
                 <div className="flex items-center gap-2 group/collab transition-all">
                   <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">Collaborators</span>
                   <div className="flex items-center gap-2">
-                    {transaction.collaborators.length > 0 ? (
-                      <div className="flex items-center gap-1.5 translate-y-[0.5px]">
-                         <p className="text-[14px] font-black text-[#111827] leading-none">
-                           {transaction.collaborators.slice(0, 3).map(c => c.name).join(", ")}
-                         </p>
-                         {transaction.collaborators.length > 3 && (
-                           <Badge className="bg-[#5A5FF2]/10 text-[#5A5FF2] border-none font-bold text-[9px] h-4.5 px-1.5 rounded-full">
-                              +{transaction.collaborators.length - 3} more
-                           </Badge>
-                         )}
-                      </div>
+                    {transaction?.collaborators && transaction.collaborators.length > 0 ? (
+                      <CollaboratorAvatarStack 
+                        collaborators={transaction.collaborators}
+                        max={4}
+                        onManage={() => setIsAssignModalOpen(true)}
+                      />
                     ) : (
                       <span className="text-[13px] font-bold text-slate-300 italic tracking-tight">Not assigned</span>
                     )}
-                    
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="size-7 rounded-full text-[#5A5FF2] hover:bg-[#5A5FF2]/10 transition-all active:scale-90"
-                      onClick={() => setIsAssignModalOpen(true)}
-                    >
-                      <Settings className="size-4" />
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -167,33 +154,12 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
             </div>
 
             {/* Collaborator Column - Clean Grid View */}
-            <div className="space-y-1.5 min-w-[180px]">
+            <div className="space-y-3 min-w-[180px]">
               <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">Collaborators</span>
-              <div className="flex flex-col gap-1.5">
-                {transaction.collaborators.length > 0 ? (
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="text-[14px] font-black text-[#111827] max-w-[200px] leading-tight">
-                      {transaction.collaborators.slice(0, 2).map(c => c.name).join(", ")}
-                      {transaction.collaborators.length > 2 && "..."}
-                    </p>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="size-6 text-[#5A5FF2] hover:bg-[#5A5FF2]/5 rounded-full transition-all"
-                      onClick={() => setIsAssignModalOpen(true)}
-                    >
-                      <Settings className="size-3.5" />
-                    </Button>
-                  </div>
-                ) : (
-                  <button 
-                    onClick={() => setIsAssignModalOpen(true)}
-                    className="text-[13px] font-black text-[#5A5FF2] hover:underline uppercase tracking-wider text-left"
-                  >
-                    + Assign
-                  </button>
-                )}
-              </div>
+              <CollaboratorAvatarStack 
+                collaborators={transaction.collaborators}
+                onManage={() => setIsAssignModalOpen(true)}
+              />
             </div>
 
             <div className="space-y-1.5">

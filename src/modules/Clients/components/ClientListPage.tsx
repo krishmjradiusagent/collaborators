@@ -46,6 +46,8 @@ import { AssignCollaboratorModal } from "./AssignCollaboratorModal"
 import { InviteCollaboratorModal } from "../../TeamSettings/collaborators/components/InviteCollaboratorModal"
 import { TypeBadge } from "../../TeamSettings/collaborators/components/badges/TypeBadge"
 import { ManageCollaboratorsModal } from "./ManageCollaboratorsModal"
+import { InviteClientModal } from "./InviteClientModal"
+import { CollaboratorAvatarStack } from "../../Shared/components/CollaboratorAvatarStack"
 
 interface ClientListPageProps {
 }
@@ -61,13 +63,14 @@ export function ClientListPage({ }: ClientListPageProps) {
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
   const [isManageModalOpen, setIsManageModalOpen] = React.useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = React.useState(false)
+  const [isInviteClientOpen, setIsInviteClientOpen] = React.useState(false)
   const [clientForAssign, setClientForAssign] = React.useState<Client | null>(null)
   const [clientForManage, setClientForManage] = React.useState<Client | null>(null)
 
   // Local state for instant updates
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
   const [localClients, setLocalClients] = React.useState<Client[]>(MOCK_CLIENTS)
-  const { currentRole, isCollaborator, canInvite } = useRole()
+  const { currentRole, isCollaborator, canInvite, hasFullAccess } = useRole()
 
   // Handle custom trigger from Manage Modal
   React.useEffect(() => {
@@ -218,6 +221,11 @@ export function ClientListPage({ }: ClientListPageProps) {
           }}
           existingEmails={GLOBAL_COLLABORATOR_POOL.map(c => c.email)}
         />
+
+        <InviteClientModal
+          open={isInviteClientOpen}
+          onOpenChange={setIsInviteClientOpen}
+        />
         {/* Header Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -233,9 +241,12 @@ export function ClientListPage({ }: ClientListPageProps) {
             <Button variant="outline" className="flex items-center gap-2 text-[#373758] font-bold border-[#EFEFEF] rounded-[10px] h-10">
               <Settings className="h-4 w-4" /> Integrations
             </Button>
-            {!isCollaborator && (
+            {hasFullAccess && (
               <div className="flex items-center gap-3">
-                <Button className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2">
+                <Button 
+                  className="bg-white border border-[#5A5FF2] text-[#5A5FF2] hover:bg-[#5A5FF2]/5 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2"
+                  onClick={() => setIsInviteClientOpen(true)}
+                >
                   <Plus className="h-4 w-4" /> Client
                 </Button>
                 <Button className="bg-[#5A5FF2]/10 text-[#5A5FF2] hover:bg-[#5A5FF2]/20 font-bold px-6 h-10 rounded-[30px] flex items-center gap-2 border-none">
@@ -484,39 +495,13 @@ export function ClientListPage({ }: ClientListPageProps) {
                       </TableCell>
                     )}
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex flex-col gap-2 min-w-[200px] max-w-[320px] py-1">
-                        {assignedCollabs.slice(0, 2).map((collab, idx, arr) => (
-                          <div key={collab.id} className="flex items-center gap-2 group/collab transition-colors cursor-pointer w-fit" onClick={(e) => handleManageCollabClick(e, client)}>
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={collab.avatar} />
-                              <AvatarFallback className="text-[10px] bg-[#5A5FF2]/10 text-[#5A5FF2]">{collab.name[0]}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-[13px] font-black text-[#373758] truncate leading-none max-w-[130px] group-hover/collab:text-[#5A5FF2] transition-colors">{collab.name}</span>
-                            <TypeBadge type={collab.type as any} className="h-[14px] px-1.5 text-[8px]" />
-                            
-                            {idx === arr.length - 1 && assignedCollabs.length > 2 && (
-                              <div className="flex items-center gap-1 bg-[#EEF2FF] hover:bg-[#E0E7FF] text-[#5A5FF2] px-2 py-0.5 rounded-full transition-colors ml-1">
-                                <span className="text-[11px] font-bold">+{assignedCollabs.length - 2}</span>
-                                <ChevronRight className="h-3 w-3 opacity-80" />
-                              </div>
-                            )}
-                            {idx === arr.length - 1 && assignedCollabs.length <= 2 && (
-                              <div className="flex items-center justify-center p-0.5 rounded-full hover:bg-slate-100 text-[#5A5FF2] transition-colors ml-1">
-                                <ChevronRight className="h-4 w-4" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-
-                        {assignedCollabs.length === 0 && (
-                          <button
-                            onClick={(e) => handleManageCollabClick(e, client)}
-                            className="text-[13px] font-bold text-[#5A5FF2] underline underline-offset-2 leading-none hover:text-[#4B50D9] transition-colors w-fit"
-                          >
-                            Assign
-                          </button>
-                        )}
-                      </div>
+                      <CollaboratorAvatarStack 
+                        collaborators={assignedCollabs}
+                        onManage={() => {
+                          setClientForManage(client)
+                          setIsManageModalOpen(true)
+                        }}
+                      />
                     </TableCell>
                     <TableCell className="pr-6" onClick={(e) => e.stopPropagation()}>
                       <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-300 group-hover:text-slate-600">

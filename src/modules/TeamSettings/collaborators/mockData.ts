@@ -87,3 +87,45 @@ export const INITIAL_COLLABORATORS: Collaborator[] = [
     accessLevel: "Client level"
   }
 ];
+
+export const RADIUS_APPROVED_POOL: Collaborator[] = [
+  {
+    id: "ra-1",
+    name: "Radius TC Excellence",
+    email: "tc@radiusagent.com",
+    type: "tc",
+    status: "active",
+    invitedDate: "2025-01-01",
+    inviteExpiresAt: null,
+    activatedDate: "2025-01-01",
+    assignments: { clients: [], transactions: [] },
+    paymentStatus: "active",
+    accessLevel: "Full Access"
+  },
+  {
+    id: "ra-2",
+    name: "Elite Lending Group",
+    email: "lending@radiusagent.com",
+    type: "lender",
+    status: "active",
+    invitedDate: "2025-01-01",
+    inviteExpiresAt: null,
+    activatedDate: "2025-01-01",
+    assignments: { clients: [], transactions: [] },
+    paymentStatus: "active",
+    accessLevel: "Full Access"
+  },
+  {
+    id: "ra-3",
+    name: "Radius Marketing VA",
+    email: "va@radiusagent.com",
+    type: "va",
+    status: "active",
+    invitedDate: "2025-01-01",
+    inviteExpiresAt: null,
+    activatedDate: "2025-01-01",
+    assignments: { clients: [], transactions: [] },
+    paymentStatus: "active",
+    accessLevel: "Full Access"
+  }
+];
