@@ -22,6 +22,13 @@ import {
   TooltipProvider, 
   TooltipTrigger 
 } from "../../../components/ui/Tooltip"
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from "../../../components/ui/DropdownMenu"
 import { cn } from "../../../lib/utils"
 import { Button } from "../../../components/ui/Button"
 import { Badge } from "../../../components/ui/Badge"
@@ -288,9 +295,22 @@ export function ClientProfilePage({ client, onBack }: ClientProfilePageProps) {
                                   <span className={cn("text-[11px] font-black uppercase tracking-wide", collab.status === 'active' ? 'text-[#10B981]' : 'text-slate-400')}>{collab.status}</span>
                                </div>
                             </div>
-                            <button className="size-9 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-all text-slate-300 hover:text-slate-900 active:scale-95 shadow-sm">
-                               <MoreHorizontal className="h-4 w-4" />
-                            </button>
+                             <DropdownMenu>
+                               <DropdownMenuTrigger asChild>
+                                 <button className="size-9 flex items-center justify-center hover:bg-slate-100 rounded-xl transition-all text-slate-300 hover:text-slate-900 active:scale-95 shadow-sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                 </button>
+                               </DropdownMenuTrigger>
+                               <DropdownMenuContent align="end" className="w-48 bg-white border-slate-100 shadow-xl rounded-2xl z-50 p-2">
+                                  <DropdownMenuItem className="p-3 cursor-pointer focus:bg-slate-50 rounded-xl font-bold text-[13px]">
+                                    Manage Default Status
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator className="bg-slate-50 my-1" />
+                                  <DropdownMenuItem className="p-3 cursor-pointer focus:bg-red-50 focus:text-red-600 text-red-600 rounded-xl font-bold text-[13px]">
+                                    Remove Collaborator
+                                  </DropdownMenuItem>
+                               </DropdownMenuContent>
+                             </DropdownMenu>
                          </div>
                        </div>
                      ))}

@@ -30,3 +30,18 @@ export interface Transaction {
   clientId: string;
   title: string;
 }
+
+export type DefaultSource = "Self" | "Lead";
+
+export interface DefaultCollaborator {
+  collaboratorId: string;
+  source: DefaultSource;
+}
+
+export interface Agent {
+  id: string;
+  name: string;
+  role: "Agent" | "Team Lead";
+  email: string;
+  default_collab_list: DefaultCollaborator[];
+}

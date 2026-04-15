@@ -12,7 +12,9 @@ import {
   MapPin,
   ChevronDown,
   ChevronUp,
-  X
+  X,
+  Lock,
+  Globe
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -60,6 +62,7 @@ const formSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zip: z.string().optional(),
+  visibility: z.enum(["private", "shared", "public"]).default("private"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -145,6 +148,7 @@ export function InviteCollaboratorModal({
       firstName: "",
       lastName: "",
       email: "",
+      visibility: "private",
     },
   });
 
@@ -193,36 +197,36 @@ export function InviteCollaboratorModal({
         className="sm:max-w-[500px] bg-white text-slate-900 p-0 shadow-[0px_20px_60px_rgba(0,0,0,0.1)] rounded-[40px] z-[9999] border-none flex flex-col max-h-[90vh] overflow-hidden"
         overlayClassName="z-[9999]"
       >
-        <div className="p-10 pb-0 shrink-0 relative">
+        <div className="p-8 pb-0 shrink-0 relative">
           <button 
              onClick={() => onOpenChange(false)}
-             className="absolute top-6 right-8 size-10 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 z-10"
+             className="absolute top-5 right-5 size-8 rounded-full bg-slate-50 flex items-center justify-center hover:bg-slate-100 transition-colors text-slate-400 z-10"
           >
-            <X className="size-5" />
+            <X className="size-4" />
           </button>
           
-          <DialogHeader className="mb-6">
-            <div className="mb-5 flex">
+          <DialogHeader className="mb-4">
+            <div className="mb-3 flex">
               <div className={cn(
-                "h-14 w-14 rounded-2xl flex items-center justify-center transition-colors duration-500 shadow-sm",
+                "h-12 w-12 rounded-xl flex items-center justify-center transition-colors duration-500 shadow-sm",
                 step === 1 ? "bg-[#5A5FF2]/10 text-[#5A5FF2]" : (TYPES.find(t => t.id === selectedType)?.bgColor || "bg-[#5A5FF2]/10")
               )}>
                 {step === 1 ? (
-                  <UserPlus className="h-7 w-7" />
+                  <UserPlus className="h-6 w-6" />
                 ) : (
                   (() => {
                     const TIcon = TYPES.find(t => t.id === selectedType)?.icon || UserPlus;
-                    return <TIcon className={cn("h-7 w-7", TYPES.find(t => t.id === selectedType)?.color)} />;
+                    return <TIcon className={cn("h-6 w-6", TYPES.find(t => t.id === selectedType)?.color)} />;
                   })()
                 )}
               </div>
             </div>
 
-            <DialogTitle className="text-3xl font-black tracking-tight text-[#171717] leading-tight">
+            <DialogTitle className="text-2xl font-black tracking-tight text-[#171717] leading-tight">
               {step === 1 ? "Add Collaborator" : `Invite ${TYPES.find(t => t.id === selectedType)?.label}`}
             </DialogTitle>
 
-            <DialogDescription className="text-slate-500 font-medium">
+            <DialogDescription className="text-slate-500 font-medium text-sm pt-0.5">
               {step === 1 
               ? "Choose who you'd like to invite." 
               : "Enter details for the invitation."}
@@ -232,7 +236,7 @@ export function InviteCollaboratorModal({
 
         <div 
           ref={scrollContainerRef} 
-          className="flex-1 overflow-y-auto px-10 hide-scrollbar"
+          className="flex-1 overflow-y-auto px-8 hide-scrollbar"
         >
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-6 pt-2">
@@ -429,13 +433,45 @@ export function InviteCollaboratorModal({
                       )}
                     </AnimatePresence>
                   </div>
+
+                  <FormField
+                    control={form.control}
+                    name="visibility"
+                    render={({ field }) => (
+                      <FormItem className="pt-2">
+                        <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Visibility Permissions</FieldLabel>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
+                        >
+                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "private" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
+                            <RadioGroupItem value="private" className="sr-only" />
+                            <Lock className={cn("h-5 w-5", field.value === "private" ? "text-[#5A5FF2]" : "text-slate-400")} />
+                            <span className={cn("text-[13px] font-bold", field.value === "private" ? "text-[#5A5FF2]" : "text-slate-900")}>Private</span>
+                          </Label>
+                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "shared" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
+                            <RadioGroupItem value="shared" className="sr-only" />
+                            <Users className={cn("h-5 w-5", field.value === "shared" ? "text-[#5A5FF2]" : "text-slate-400")} />
+                            <span className={cn("text-[13px] font-bold", field.value === "shared" ? "text-[#5A5FF2]" : "text-slate-900")}>Shared</span>
+                          </Label>
+                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "public" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
+                            <RadioGroupItem value="public" className="sr-only" />
+                            <Globe className={cn("h-5 w-5", field.value === "public" ? "text-[#5A5FF2]" : "text-slate-400")} />
+                            <span className={cn("text-[13px] font-bold", field.value === "public" ? "text-[#5A5FF2]" : "text-slate-900")}>Public</span>
+                          </Label>
+                        </RadioGroup>
+                      </FormItem>
+                    )}
+                  />
+
                 </div>
               )}
             </form>
           </Form>
         </div>
 
-        <div className="p-10 pt-6 border-t border-slate-50 shrink-0 bg-white/80 backdrop-blur-sm">
+        <div className="p-8 pt-6 border-t border-slate-50 shrink-0 bg-white/80 backdrop-blur-sm">
           <div className="flex gap-4">
             {(step === 2 || selectedType) && (
               <Button

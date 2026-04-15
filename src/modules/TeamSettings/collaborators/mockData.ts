@@ -1,4 +1,4 @@
-import { Collaborator, Client, Transaction } from "./types";
+import { Collaborator, Client, Transaction, Agent } from "./types";
 
 export const MOCK_CLIENTS: Client[] = [
   { id: "client-1", name: "John Doe" },
@@ -127,5 +127,27 @@ export const RADIUS_APPROVED_POOL: Collaborator[] = [
     assignments: { clients: [], transactions: [] },
     paymentStatus: "active",
     accessLevel: "Full Access"
+  }
+];
+
+export const MOCK_AGENTS: Agent[] = [
+  {
+    id: "agent-1",
+    name: "John Radius",
+    role: "Team Lead",
+    email: "john.radius@radiusagent.com",
+    default_collab_list: [
+      { collaboratorId: "collab-1", source: "Lead" },
+    ]
+  },
+  {
+    id: "agent-2",
+    name: "Sarah Agent",
+    role: "Agent",
+    email: "sarah@radiusagent.com",
+    default_collab_list: [
+      { collaboratorId: "collab-1", source: "Lead" },
+      { collaboratorId: "collab-3", source: "Self" },
+    ]
   }
 ];

@@ -4,7 +4,7 @@ import { TypeBadge } from "./badges/TypeBadge";
 import { StatusBadge } from "./badges/StatusBadge";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
-import { MoreHorizontal, Mail, Trash2 } from "lucide-react";
+import { MoreHorizontal, Mail, Trash2, Users, Settings, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   DropdownMenu, 
@@ -14,6 +14,9 @@ import {
   DropdownMenuLabel, 
   DropdownMenuSeparator 
 } from "@/components/ui/DropdownMenu";
+import { ManageCollaborationModal } from "./ManageCollaborationModal";
+import { ManageCollaboratorDefaultsModal } from "./ManageCollaboratorDefaultsModal";
+import { useState } from "react";
 
 interface CollaboratorRowProps {
   collaborator: Collaborator;
@@ -28,6 +31,8 @@ export function CollaboratorRow({
 }: CollaboratorRowProps) {
   const isTCorVA = collaborator.type === "tc" || collaborator.type === "va";
   const { assignments } = collaborator;
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+  const [isDefaultsModalOpen, setIsDefaultsModalOpen] = useState(false);
   
   return (
     <TableRow 
@@ -113,12 +118,30 @@ export function CollaboratorRow({
                     <Mail className="h-4 w-4 text-[#5A5FF2]" /> Resend Credentials
                  </DropdownMenuItem>
                )}
+                 <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-lg" onClick={() => setIsManageModalOpen(true)}>
+                   <Users className="h-4 w-4 text-[#5A5FF2]" /> Manage Collaboration
+                </DropdownMenuItem>
+                <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-lg" onClick={() => setIsDefaultsModalOpen(true)}>
+                   <Settings className="h-4 w-4 text-[#5A5FF2]" /> Manage Defaults
+                </DropdownMenuItem>
                <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-red-600 rounded-lg group" onClick={() => onRemove(collaborator)}>
                   <Trash2 className="h-4 w-4 text-red-600 group-hover:scale-110 transition-transform" /> Revoke Access
                </DropdownMenuItem>
             </DropdownMenuContent>
          </DropdownMenu>
-      </TableCell>
+
+          <ManageCollaborationModal 
+            open={isManageModalOpen} 
+            onOpenChange={setIsManageModalOpen}
+            collaborator={collaborator}
+          />
+
+          <ManageCollaboratorDefaultsModal 
+             open={isDefaultsModalOpen}
+             onOpenChange={setIsDefaultsModalOpen}
+             collaborator={collaborator}
+          />
+       </TableCell>
     </TableRow>
   );
 }

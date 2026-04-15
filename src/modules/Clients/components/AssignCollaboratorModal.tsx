@@ -1,10 +1,11 @@
 import * as React from "react"
-import { Check, Loader2, UserPlus, ChevronDown, User, Home } from "lucide-react"
+import { Check, Loader2, UserPlus, ChevronDown, User, Home, Info } from "lucide-react"
 import { Badge } from "@/components/ui/Badge"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/Button"
+import { Checkbox } from "@/components/ui/Checkbox"
 import {
   Command,
   CommandEmpty,
@@ -31,7 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/Avatar"
 interface AssignCollaboratorModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onAssign: (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[]) => void
+  onAssign: (collaboratorId: string, type: 'client' | 'transaction', transactionIds?: string[], isDefault?: boolean) => void
   onOpenInvite: () => void
   globalPool: Collaborator[]
   transactions?: Transaction[]
@@ -60,6 +61,7 @@ export function AssignCollaboratorModal({
   const [selectedTransactionIds, setSelectedTransactionIds] = React.useState<string[]>(defaultTransactionId ? [defaultTransactionId] : [])
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
   const [isTxPopoverOpen, setIsTxPopoverOpen] = React.useState(false)
+  const [isDefault, setIsDefault] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Sync with props when modal opens
@@ -83,7 +85,7 @@ export function AssignCollaboratorModal({
     setIsSubmitting(true)
     await new Promise((resolve) => setTimeout(resolve, 800))
     
-    onAssign(selectedCollabId, assignmentType, selectedTransactionIds.length > 0 ? selectedTransactionIds : undefined)
+    onAssign(selectedCollabId, assignmentType, selectedTransactionIds.length > 0 ? selectedTransactionIds : undefined, isDefault)
     
     toast.success("Assignment Confirmed", {
       description: `${selectedCollab?.name} assigned to ${clientName} at ${assignmentType === 'transaction' ? 'Transaction' : 'Client'} Level.`,
@@ -99,6 +101,7 @@ export function AssignCollaboratorModal({
   const reset = () => {
     setSelectedCollabId(null)
     setAssignmentType(defaultType)
+    setIsDefault(false)
     setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
   }
 
@@ -380,6 +383,25 @@ export function AssignCollaboratorModal({
                     </Command>
                   </PopoverContent>
                 </Popover>
+              </div>
+            )}
+
+            {/* Set as Default (Only Client Level) */}
+            {assignmentType === 'client' && (
+              <div className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border p-4 shadow-sm mt-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setIsDefault(!isDefault)}>
+                <Checkbox 
+                  checked={isDefault}
+                  onCheckedChange={(checked) => setIsDefault(checked as boolean)}
+                  className="mt-1"
+                />
+                <div className="space-y-1 leading-none">
+                  <label className="text-sm font-bold text-slate-900 cursor-pointer">
+                    Save as Default Collaborator
+                  </label>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Automatically add this collaborator to all new clients you create hereafter.
+                  </p>
+                </div>
               </div>
             )}
           </div>

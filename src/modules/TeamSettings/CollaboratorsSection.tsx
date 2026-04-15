@@ -4,6 +4,7 @@ import { useCollaborators } from "./collaborators/hooks/useCollaborators";
 import { CollaboratorTable } from "./collaborators/components/CollaboratorTable";
 import { InviteCollaboratorModal } from "./collaborators/components/InviteCollaboratorModal";
 import { RemoveCollaboratorConfirm } from "./collaborators/components/RemoveCollaboratorConfirm";
+import { AgentCollaborationSettingsModal } from "./collaborators/components/AgentCollaborationSettingsModal";
 import { Collaborator } from "./collaborators/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -16,7 +17,8 @@ import {
   UserPlus,
   Shield,
   ArrowRight,
-  Users
+  Users,
+  Settings
 } from "lucide-react";
 import { 
   DropdownMenu, 
@@ -47,6 +49,7 @@ export function CollaboratorsSection() {
 
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
   const [isApprovedModalOpen, setIsApprovedModalOpen] = useState(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Collaborator | null>(null);
 
   const { canAssign } = useRole();
@@ -106,37 +109,48 @@ export function CollaboratorsSection() {
           <p className="text-sm text-muted-foreground font-medium">Manage invitations, roles, and assignments for your external collaborators.</p>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              className="rounded-full bg-[#5A5FF2] hover:bg-[#5A5FF2]/90 h-10 px-6 gap-2 shadow-lg shadow-[#5A5FF2]/10 font-bold shrink-0 transition-all active:scale-95"
-            >
-              <Plus className="h-4 w-4" />
-              Collaborator
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 bg-white border-slate-100 shadow-3xl p-2 rounded-2xl z-50">
-            <DropdownMenuItem 
-              className="gap-3 p-3 cursor-pointer focus:bg-[#5A5FF2]/5 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]"
-              onClick={() => setIsApprovedModalOpen(true)}
-            >
-              <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
-                <ShieldCheck className="size-4" />
-              </div>
-              Radius Approved
-            </DropdownMenuItem>
-            <DropdownMenuSeparator className="bg-slate-50 my-1.5" />
-            <DropdownMenuItem 
-              className="gap-3 p-3 cursor-pointer focus:bg-[#5A5FF2]/5 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]"
-              onClick={() => setIsInviteModalOpen(true)}
-            >
-              <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
-                <UserPlus className="size-4" />
-              </div>
-              Add New Collaborator
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline"
+            className="h-10 px-4 rounded-full border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all hidden md:flex"
+            onClick={() => setIsSettingsModalOpen(true)}
+          >
+            <Settings className="size-4 mr-2" />
+            Manage Defaults
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                className="rounded-full bg-[#5A5FF2] hover:bg-[#5A5FF2]/90 h-10 px-6 gap-2 shadow-lg shadow-[#5A5FF2]/10 font-bold shrink-0 transition-all active:scale-95"
+              >
+                <Plus className="h-4 w-4" />
+                Collaborator
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 bg-white border-slate-100 shadow-3xl p-2 rounded-2xl z-50">
+              <DropdownMenuItem 
+                className="gap-3 p-3 cursor-pointer focus:bg-[#5A5FF2]/5 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]"
+                onClick={() => setIsApprovedModalOpen(true)}
+              >
+                <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-600">
+                  <ShieldCheck className="size-4" />
+                </div>
+                Radius Approved
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-slate-50 my-1.5" />
+              <DropdownMenuItem 
+                className="gap-3 p-3 cursor-pointer focus:bg-[#5A5FF2]/5 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]"
+                onClick={() => setIsInviteModalOpen(true)}
+              >
+                <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400">
+                  <UserPlus className="size-4" />
+                </div>
+                Add New Collaborator
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Filter Row */}
@@ -269,6 +283,12 @@ export function CollaboratorsSection() {
           removeCollaborator(id, reassignId);
           setRemoveTarget(null);
         }}
+      />
+
+      <AgentCollaborationSettingsModal 
+        open={isSettingsModalOpen}
+        onOpenChange={setIsSettingsModalOpen}
+        globalPool={collaborators}
       />
     </div>
   );
