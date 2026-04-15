@@ -108,7 +108,6 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
                     {transaction?.collaborators && transaction.collaborators.length > 0 ? (
                       <CollaboratorAvatarStack 
                         collaborators={transaction.collaborators}
-                        max={4}
                         onManage={() => setIsAssignModalOpen(true)}
                       />
                     ) : (

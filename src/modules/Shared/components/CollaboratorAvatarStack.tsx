@@ -23,7 +23,7 @@ interface CollaboratorAvatarStackProps {
 
 export function CollaboratorAvatarStack({
   collaborators = [],
-  max = 4,
+  max = 2,
   onManage,
   className
 }: CollaboratorAvatarStackProps) {
@@ -61,7 +61,8 @@ export function CollaboratorAvatarStack({
           </motion.div>
         ))}
         
-        {remainingCount > 0 && (
+        {/* Total Count Circle */}
+        {(collaborators || []).length > 0 && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -72,8 +73,10 @@ export function CollaboratorAvatarStack({
                onManage?.()
             }}
           >
-            <div className="size-9 rounded-full bg-slate-50 ring-2 ring-white shadow-sm flex items-center justify-center cursor-pointer hover:bg-slate-100 transition-all active:scale-95 group/more border border-blue-50">
-              <span className="text-[13px] font-black text-[#5A5FF2]">+{remainingCount}</span>
+            <div className="size-9 rounded-full bg-white ring-2 ring-white shadow-[0px_4px_12px_rgba(90,95,242,0.15)] flex items-center justify-center cursor-pointer hover:bg-slate-50 transition-all active:scale-95 group/total border-2 border-[#5A5FF2]/10 ml-1">
+              <span className="text-[13px] font-black text-[#5A5FF2]">
+                {(collaborators || []).length}
+              </span>
             </div>
           </motion.div>
         )}
