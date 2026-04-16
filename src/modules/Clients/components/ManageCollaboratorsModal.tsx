@@ -103,16 +103,18 @@ export function ManageCollaboratorsModal({
                 Managing collaborators for <span className="text-slate-900 font-bold">{client.name}</span>
               </DialogDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-red-500 hover:text-red-600 hover:bg-red-50/50 font-bold rounded-xl px-3 h-8 text-[10px] uppercase tracking-wider"
-                onClick={onRemoveAll}
-              >
-                Revoke All
-              </Button>
-            </div>
+            {assignedCollabs.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-500 hover:text-red-600 hover:bg-red-50/50 font-bold rounded-xl px-3 h-8 text-[10px] uppercase tracking-wider"
+                  onClick={onRemoveAll}
+                >
+                  Revoke All
+                </Button>
+              </div>
+            )}
           </DialogHeader>
 
           {/* Inline Search Bar */}
