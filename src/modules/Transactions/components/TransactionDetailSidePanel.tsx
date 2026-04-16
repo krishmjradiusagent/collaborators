@@ -69,10 +69,10 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
 
   // Initialize assignments
   React.useEffect(() => {
-    if (isOpen) {
+    if (isOpen && transaction) {
       setLocalAssignments(MOCK_ASSIGNMENTS.filter(a => a.transactionId === transaction.id || a.clientName === transaction.clientName));
     }
-  }, [isOpen, transaction.id, transaction.clientName]);
+  }, [isOpen, transaction?.id, transaction?.clientName]);
 
   const collabSectionRef = React.useRef<HTMLDivElement>(null);
 
@@ -206,25 +206,7 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                       <Users className="size-5" />
                     </div>
                     <span className="text-[#111827] text-[16px] font-black tracking-wide uppercase">Collaborators</span>
-                    {assignedCollabs.some(c => localAssignments.find(a => a.collaboratorId === c.id)?.type !== 'client') && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="ml-auto text-[#5a5ff2] hover:bg-indigo-50 font-black text-[11px] uppercase tracking-widest gap-2 h-8 px-3 rounded-full"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          assignedCollabs.forEach(c => {
-                            if (localAssignments.find(a => a.collaboratorId === c.id)?.type !== 'client') {
-                              handleUpdateAccess(c.id, 'client');
-                            }
-                          });
-                          toast.success("All collaborators upgraded to Client Level");
-                        }}
-                      >
-                        <UserCheck className="size-3.5" />
-                        Switch all to client level
-                      </Button>
-                    )}
+
                     {assignedCollabs.length > 0 && (
                       <div className="ml-2 scale-90 origin-left" onClick={(e) => e.stopPropagation()}>
                         <CollaboratorAvatarStack
@@ -366,7 +348,6 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
         open={isAssignModalOpen}
         onOpenChange={setIsAssignModalOpen}
         onAssign={(id, type, txId) => {
-          console.log("Assigned", id, type, txId);
           setIsAssignModalOpen(false);
           toast.success("Assignment Confirmed");
         }}
@@ -415,7 +396,6 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
         open={isInviteModalOpen}
         onOpenChange={setIsInviteModalOpen}
         onInviteSent={(data) => {
-          console.log("Invite sent", data);
           toast.success("Invitation successful");
         }}
         existingEmails={[]}

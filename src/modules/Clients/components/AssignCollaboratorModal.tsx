@@ -57,6 +57,7 @@ export function AssignCollaboratorModal({
   defaultTransactionId,
   context = 'default'
 }: AssignCollaboratorModalProps) {
+  const { currentRole } = useRole()
   const [selectedCollabId, setSelectedCollabId] = React.useState<string | null>(null)
   const [assignmentType, setAssignmentType] = React.useState<'client' | 'transaction'>(
     (context === 'transaction-detail' || context === 'transaction-list') ? 'transaction' : defaultType

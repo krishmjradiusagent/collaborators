@@ -472,17 +472,19 @@ export function TransactionsPage() {
         </div >
       </div >
 
-  { selectedTx && (
-    <TransactionDetailSidePanel
-      transaction={selectedTx}
-      isOpen={isSidePanelOpen}
-      onClose={() => setIsSidePanelOpen(false)}
-    />
-  )}
+      {selectedTx && (
+        <TransactionDetailSidePanel 
+          key={selectedTx.id}
+          isOpen={isSidePanelOpen}
+          onClose={() => setIsSidePanelOpen(false)}
+          transaction={selectedTx}
+        />
+      )}
 
 {
   selectedClient && (
     <ClientDetailSidePanel
+      key={selectedClient.id}
       client={selectedClient}
       isOpen={isClientDetailOpen}
       onClose={() => setIsClientDetailOpen(false)}
@@ -623,7 +625,8 @@ export function TransactionsPage() {
         }
       }}
       onAssign={(collabId, type, txnIds) => {
-        const ids = txnIds || [selectedTx.id];
+        if (!selectedTx && (!txnIds || txnIds.length === 0)) return;
+        const ids = txnIds || (selectedTx ? [selectedTx.id] : []);
         const collab = GLOBAL_COLLABORATOR_POOL.find(c => collabId === c.id);
         
         if (collab) {

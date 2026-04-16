@@ -22,6 +22,7 @@ function AppContent({ activeTab, setActiveTab, selectedClient, setSelectedClient
     if (selectedClient) {
       return (
         <ClientProfilePage 
+          key={selectedClient.id}
           client={selectedClient} 
           onBack={() => setSelectedClient(null)} 
         />
