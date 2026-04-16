@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Check, Loader2, UserPlus, ChevronDown, User, Home, Info } from "lucide-react"
+import { useRole } from "@/contexts/RoleContext"
 import { Badge } from "@/components/ui/Badge"
 import { toast } from "sonner"
 
@@ -57,7 +58,9 @@ export function AssignCollaboratorModal({
   context = 'default'
 }: AssignCollaboratorModalProps) {
   const [selectedCollabId, setSelectedCollabId] = React.useState<string | null>(null)
-  const [assignmentType, setAssignmentType] = React.useState<'client' | 'transaction'>(defaultType)
+  const [assignmentType, setAssignmentType] = React.useState<'client' | 'transaction'>(
+    (context === 'transaction-detail' || context === 'transaction-list') ? 'transaction' : defaultType
+  )
   const [selectedTransactionIds, setSelectedTransactionIds] = React.useState<string[]>(defaultTransactionId ? [defaultTransactionId] : [])
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false)
   const [isTxPopoverOpen, setIsTxPopoverOpen] = React.useState(false)
@@ -67,13 +70,12 @@ export function AssignCollaboratorModal({
   // Sync with props when modal opens
   React.useEffect(() => {
     if (open) {
-      if (context === 'transaction-detail') {
+      if (context === 'transaction-detail' || context === 'transaction-list') {
         setAssignmentType('transaction')
-        setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
       } else {
         setAssignmentType(defaultType)
-        setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
       }
+      setSelectedTransactionIds(defaultTransactionId ? [defaultTransactionId] : [])
     }
   }, [open, defaultType, defaultTransactionId, context])
 
@@ -239,69 +241,67 @@ export function AssignCollaboratorModal({
             </div>
 
             {/* Step 2: Assignment Level */}
-            {context !== 'transaction-detail' && (
-              <div className="space-y-4">
-                <label className="text-[12px] font-bold text-[#737373] tracking-widest uppercase">ASSIGNMENT LEVEL</label>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Client Level */}
-                  <div 
-                    className={cn(
-                      "relative flex flex-col p-5 rounded-[28px] border-2 cursor-pointer transition-all duration-300",
-                      assignmentType === 'client' 
-                        ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-[0px_10px_20px_rgba(90,95,242,0.1)] scale-[1.02]" 
-                        : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"
-                    )}
-                    onClick={() => setAssignmentType('client')}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className={cn(
-                        "p-2.5 rounded-2xl transition-colors",
-                        assignmentType === 'client' ? "bg-[#5A5FF2] text-white" : "bg-slate-100 text-slate-400"
-                      )}>
-                        <User className="size-5" />
-                      </div>
-                      <div className={cn(
-                        "size-[20px] rounded-full border-2 flex items-center justify-center transition-all",
-                        assignmentType === 'client' ? "border-[#5A5FF2] bg-[#5A5FF2]" : "border-slate-200"
-                      )}>
-                        {assignmentType === 'client' && <div className="size-2 rounded-full bg-white shadow-sm" />}
-                      </div>
+            <div className="space-y-4">
+              <label className="text-[12px] font-bold text-[#737373] tracking-widest uppercase">ASSIGNMENT LEVEL</label>
+              
+              <div className="grid grid-cols-2 gap-4">
+                {/* Client Level */}
+                <div 
+                  className={cn(
+                    "relative flex flex-col p-5 rounded-[28px] border-2 cursor-pointer transition-all duration-300",
+                    assignmentType === 'client' 
+                      ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-[0px_10px_20px_rgba(90,95,242,0.1)] scale-[1.02]" 
+                      : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"
+                  )}
+                  onClick={() => setAssignmentType('client')}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className={cn(
+                      "p-2.5 rounded-2xl transition-colors",
+                      assignmentType === 'client' ? "bg-[#5A5FF2] text-white" : "bg-slate-100 text-slate-400"
+                    )}>
+                      <User className="size-5" />
                     </div>
-                    <span className="text-[16px] font-bold text-[#171717]">Client Level</span>
-                    <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1.5 px-0.5">Access to entire client profile & details.</p>
+                    <div className={cn(
+                      "size-[20px] rounded-full border-2 flex items-center justify-center transition-all",
+                      assignmentType === 'client' ? "border-[#5A5FF2] bg-[#5A5FF2]" : "border-slate-200"
+                    )}>
+                      {assignmentType === 'client' && <div className="size-2 rounded-full bg-white shadow-sm" />}
+                    </div>
                   </div>
+                  <span className="text-[16px] font-bold text-[#171717]">Client Level</span>
+                  <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1.5 px-0.5">Access to entire client profile & details.</p>
+                </div>
 
-                  {/* Transaction Level */}
-                  <div 
-                    className={cn(
-                      "relative flex flex-col p-5 rounded-[28px] border-2 cursor-pointer transition-all duration-300",
-                      assignmentType === 'transaction' 
-                        ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-[0px_10px_20px_rgba(90,95,242,0.1)] scale-[1.02]" 
-                        : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"
-                    )}
-                    onClick={() => setAssignmentType('transaction')}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className={cn(
-                        "p-2.5 rounded-2xl transition-colors",
-                        assignmentType === 'transaction' ? "bg-[#5A5FF2] text-white" : "bg-slate-100 text-slate-400"
-                      )}>
-                        <Home className="size-5" />
-                      </div>
-                      <div className={cn(
-                        "size-[20px] rounded-full border-2 flex items-center justify-center transition-all",
-                        assignmentType === 'transaction' ? "border-[#5A5FF2] bg-[#5A5FF2]" : "border-slate-200"
-                      )}>
-                        {assignmentType === 'transaction' && <div className="size-2 rounded-full bg-white shadow-sm" />}
-                      </div>
+                {/* Transaction Level */}
+                <div 
+                  className={cn(
+                    "relative flex flex-col p-5 rounded-[28px] border-2 cursor-pointer transition-all duration-300",
+                    assignmentType === 'transaction' 
+                      ? "border-[#5A5FF2] bg-[#5A5FF2]/5 shadow-[0px_10px_20px_rgba(90,95,242,0.1)] scale-[1.02]" 
+                      : "border-slate-100 bg-white hover:border-slate-200 hover:scale-[1.01]"
+                  )}
+                  onClick={() => setAssignmentType('transaction')}
+                >
+                  <div className="flex justify-between items-start mb-3">
+                    <div className={cn(
+                      "p-2.5 rounded-2xl transition-colors",
+                      assignmentType === 'transaction' ? "bg-[#5A5FF2] text-white" : "bg-slate-100 text-slate-400"
+                    )}>
+                      <Home className="size-5" />
                     </div>
-                    <span className="text-[16px] font-bold text-[#171717]">Transaction Level</span>
-                    <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1.5 px-0.5">Access limited to a specific transaction.</p>
+                    <div className={cn(
+                      "size-[20px] rounded-full border-2 flex items-center justify-center transition-all",
+                      assignmentType === 'transaction' ? "border-[#5A5FF2] bg-[#5A5FF2]" : "border-slate-200"
+                    )}>
+                      {assignmentType === 'transaction' && <div className="size-2 rounded-full bg-white shadow-sm" />}
+                    </div>
                   </div>
+                  <span className="text-[16px] font-bold text-[#171717]">Transaction Level</span>
+                  <p className="text-[12px] text-slate-500 font-medium leading-tight mt-1.5 px-0.5">Access limited to a specific transaction.</p>
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Transaction Selection Dropdown (Only if Transaction Level) - Hidden in transaction-detail context */}
             {assignmentType === 'transaction' && context !== 'transaction-detail' && (
@@ -386,24 +386,28 @@ export function AssignCollaboratorModal({
               </div>
             )}
 
-            {/* Set as Default (Only Client Level) */}
-            {assignmentType === 'client' && (
-              <div className="flex flex-row items-start space-x-3 space-y-0 rounded-2xl border p-4 shadow-sm mt-4 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setIsDefault(!isDefault)}>
-                <Checkbox 
-                  checked={isDefault}
-                  onCheckedChange={(checked) => setIsDefault(checked as boolean)}
-                  className="mt-1"
-                />
-                <div className="space-y-1 leading-none">
-                  <label className="text-sm font-bold text-slate-900 cursor-pointer">
-                    Save as Default Collaborator
-                  </label>
-                  <p className="text-xs text-slate-500 font-medium">
-                    Automatically add this collaborator to all new clients you create hereafter.
-                  </p>
-                </div>
+            {/* Set as Default (Available globally) */}
+            <div 
+              className={cn(
+                "flex flex-row items-center space-x-3 space-y-0 rounded-2xl border p-4 shadow-sm mt-6 cursor-pointer transition-all duration-300",
+                isDefault ? "bg-[#5A5FF2]/5 border-[#5A5FF2]/20" : "bg-[#F8FAFC] border-slate-100 hover:bg-slate-50"
+              )} 
+              onClick={() => setIsDefault(!isDefault)}
+            >
+              <Checkbox 
+                checked={isDefault}
+                onCheckedChange={(checked) => setIsDefault(checked as boolean)}
+                className="border-slate-300 data-[state=checked]:bg-[#5A5FF2] data-[state=checked]:border-[#5A5FF2]"
+              />
+              <div className="space-y-1 leading-none">
+                <label className="text-[13px] font-bold text-slate-800 cursor-pointer">
+                  {currentRole === 'AGENT' ? 'Save as My Default Collaborator' : 'Save as Default Collaborator'}
+                </label>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {currentRole === 'AGENT' ? 'Automatically add to all your new clients' : 'Automatically add to all new clients you create moving forward.'}
+                </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="mt-10 flex gap-4">

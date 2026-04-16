@@ -17,6 +17,8 @@ import {
 import { ManageCollaborationModal } from "./ManageCollaborationModal";
 import { ManageCollaboratorDefaultsModal } from "./ManageCollaboratorDefaultsModal";
 import { useState } from "react";
+import { MOCK_AGENTS } from "../mockData";
+import { useRole } from "@/contexts/RoleContext";
 
 interface CollaboratorRowProps {
   collaborator: Collaborator;
@@ -31,6 +33,7 @@ export function CollaboratorRow({
 }: CollaboratorRowProps) {
   const isTCorVA = collaborator.type === "tc" || collaborator.type === "va";
   const { assignments } = collaborator;
+  const { currentRole, selectedAgent } = useRole();
   const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [isDefaultsModalOpen, setIsDefaultsModalOpen] = useState(false);
   
@@ -69,10 +72,32 @@ export function CollaboratorRow({
          </span>
       </TableCell>
 
-      <TableCell className="text-center px-4">
-        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-widest leading-none">
-          {collaborator.accessLevel || 'Client level'}
-        </span>
+      <TableCell>
+        <div className="flex justify-center">
+          {(() => {
+            if (currentRole === 'AGENT') {
+              // For agents, show if it's THEIR default
+              const agentId = selectedAgent?.id || 'a1'; // Fallback to a1 for demo if none selected
+              const agent = MOCK_AGENTS.find(a => a.id === agentId);
+              const isMyDefault = agent?.default_collab_list.some(dc => dc.collaboratorId === collaborator.id);
+              
+              if (!isMyDefault) return <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">None</span>;
+              return (
+                <Badge className="bg-[#5A5FF2]/5 text-[#5A5FF2] hover:bg-[#5A5FF2]/5 border-none px-3 h-6 text-[11px] font-bold shadow-none uppercase tracking-widest">
+                  Personal Default
+                </Badge>
+              );
+            }
+
+            const count = MOCK_AGENTS.filter(a => a.default_collab_list.some(dc => dc.collaboratorId === collaborator.id)).length;
+            if (count === 0) return <span className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">None</span>;
+            return (
+              <Badge className="bg-[#5A5FF2]/5 text-[#5A5FF2] hover:bg-[#5A5FF2]/5 border-none px-3 h-6 text-[11px] font-bold shadow-none">
+                {count} {count === 1 ? 'Agent' : 'Agents'}
+              </Badge>
+            );
+          })()}
+        </div>
       </TableCell>
 
       <TableCell>
@@ -84,24 +109,7 @@ export function CollaboratorRow({
         </div>
       </TableCell>
 
-      <TableCell className="text-right pr-12">
-        <div className="flex flex-col items-end gap-1.5 h-full">
-          <Badge 
-            variant="secondary" 
-            className={cn(
-              "h-5 px-2 text-[10px] font-black uppercase tracking-widest bg-slate-50 border-slate-100 shrink-0",
-              assignments.clients.length === 0 ? "text-slate-400" : "text-[#5A5FF2]"
-            )}
-          >
-            {assignments.clients.length} CLIENTS
-          </Badge>
-          {isTCorVA && (
-            <Badge variant="secondary" className="h-5 px-2 text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-50 border-slate-100 shrink-0">
-              {assignments.transactions.length} TXNS
-            </Badge>
-          )}
-        </div>
-      </TableCell>
+
 
       <TableCell className="text-right pr-8">
          <DropdownMenu>
@@ -118,23 +126,16 @@ export function CollaboratorRow({
                     <Mail className="h-4 w-4 text-[#5A5FF2]" /> Resend Credentials
                  </DropdownMenuItem>
                )}
-                 <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-lg" onClick={() => setIsManageModalOpen(true)}>
-                   <Users className="h-4 w-4 text-[#5A5FF2]" /> Manage Collaboration
-                </DropdownMenuItem>
-                <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-lg" onClick={() => setIsDefaultsModalOpen(true)}>
-                   <Settings className="h-4 w-4 text-[#5A5FF2]" /> Manage Defaults
-                </DropdownMenuItem>
+               {currentRole !== 'AGENT' && (
+                 <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-lg" onClick={() => setIsDefaultsModalOpen(true)}>
+                    <Settings className="h-4 w-4 text-[#5A5FF2]" /> Manage Defaults
+                 </DropdownMenuItem>
+               )}
                <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-red-600 rounded-lg group" onClick={() => onRemove(collaborator)}>
                   <Trash2 className="h-4 w-4 text-red-600 group-hover:scale-110 transition-transform" /> Revoke Access
                </DropdownMenuItem>
             </DropdownMenuContent>
          </DropdownMenu>
-
-          <ManageCollaborationModal 
-            open={isManageModalOpen} 
-            onOpenChange={setIsManageModalOpen}
-            collaborator={collaborator}
-          />
 
           <ManageCollaboratorDefaultsModal 
              open={isDefaultsModalOpen}

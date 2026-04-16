@@ -73,11 +73,6 @@ export function TeamSettingsContent() {
         <AgentGoalsTable role="teamLeadView" />
       </div>
 
-      {/* NEW: Collaborators Section - Full Visual Parity with Goals */}
-      <div className="w-full">
-        <CollaboratorsSection />
-      </div>
-
       {/* Team Information Section - Full Width */}
       <div className="bg-white border border-[#e3e3e3] p-[24px] rounded-[16px] space-y-12 w-full shadow-sm">
         <div className="bg-[#f9fafb] border border-[#e5e7eb] p-[32px] rounded-[16px] space-y-10">

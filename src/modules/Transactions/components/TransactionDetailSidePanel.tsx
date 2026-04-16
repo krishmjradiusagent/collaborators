@@ -15,7 +15,8 @@ import {
   MapPin,
   User,
   Bell,
-  Users
+  Users,
+  UserCheck
 } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +28,8 @@ import { CollaboratorAvatarStack } from '../../Shared/components/CollaboratorAva
 import { AssignCollaboratorModal } from '../../Clients/components/AssignCollaboratorModal';
 import { InviteCollaboratorModal } from '../../TeamSettings/collaborators/components/InviteCollaboratorModal';
 import { CollaboratorCard } from '../../Clients/components/CollaboratorCard';
+import { ManageCollaboratorsModal } from '../../Clients/components/ManageCollaboratorsModal';
+import { GLOBAL_COLLABORATOR_POOL, MOCK_ASSIGNMENTS } from '../../Clients/mockData';
 import { INITIAL_COLLABORATORS } from '../../TeamSettings/collaborators/mockData';
 import { useRole } from "@/contexts/RoleContext";
 
@@ -47,7 +50,11 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
   const [activeTab, setActiveTab] = useState('Overview');
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false);
   const [isCollabExpanded, setIsCollabExpanded] = useState(initialCollabExpanded);
+
+  // Use state for assignments
+  const [localAssignments, setLocalAssignments] = useState<any[]>([]);
 
   // Use state for collaborators assigned to this specific transaction
   const [assignedCollabs, setAssignedCollabs] = useState<any[]>(
@@ -60,6 +67,13 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
     })) || []
   );
 
+  // Initialize assignments
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalAssignments(MOCK_ASSIGNMENTS.filter(a => a.transactionId === transaction.id || a.clientName === transaction.clientName));
+    }
+  }, [isOpen, transaction.id, transaction.clientName]);
+
   const collabSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -69,6 +83,38 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
       }, 500);
     }
   }, [isOpen, initialCollabExpanded]);
+
+  const handleUpdateAccess = (collaboratorId: string, newType: 'client' | 'transaction') => {
+    const collab = GLOBAL_COLLABORATOR_POOL.find(c => c.id === collaboratorId);
+
+    setLocalAssignments(prev => {
+      const existing = prev.find(a => a.collaboratorId === collaboratorId);
+      if (existing) {
+        return prev.map(a =>
+          a.collaboratorId === collaboratorId
+            ? { ...a, type: newType, transactionId: newType === 'client' ? undefined : a.transactionId }
+            : a
+        );
+      }
+      return [...prev, { collaboratorId, type: newType, transactionId: newType === 'transaction' ? transaction.id : undefined }];
+    });
+
+    if (collab && !assignedCollabs.find(c => c.id === collaboratorId)) {
+      setAssignedCollabs(prev => [...prev, {
+        ...collab,
+        email: `${collab.name.toLowerCase().replace(' ', '.')}@example.com`,
+        status: 'active',
+        role: collab.type.toUpperCase(),
+        invitationExpiry: '24h'
+      }]);
+    }
+
+    if (newType === 'client') {
+      toast.success("Access Level Updated", {
+        description: `Collaborator upgraded to Client Level access.`,
+      });
+    }
+  };
 
   const tabs = [
     'Overview',
@@ -160,12 +206,31 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                       <Users className="size-5" />
                     </div>
                     <span className="text-[#111827] text-[16px] font-black tracking-wide uppercase">Collaborators</span>
+                    {assignedCollabs.some(c => localAssignments.find(a => a.collaboratorId === c.id)?.type !== 'client') && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-auto text-[#5a5ff2] hover:bg-indigo-50 font-black text-[11px] uppercase tracking-widest gap-2 h-8 px-3 rounded-full"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          assignedCollabs.forEach(c => {
+                            if (localAssignments.find(a => a.collaboratorId === c.id)?.type !== 'client') {
+                              handleUpdateAccess(c.id, 'client');
+                            }
+                          });
+                          toast.success("All collaborators upgraded to Client Level");
+                        }}
+                      >
+                        <UserCheck className="size-3.5" />
+                        Switch all to client level
+                      </Button>
+                    )}
                     {assignedCollabs.length > 0 && (
                       <div className="ml-2 scale-90 origin-left" onClick={(e) => e.stopPropagation()}>
                         <CollaboratorAvatarStack
                           collaborators={assignedCollabs}
                           max={4}
-                          onManage={() => setIsAssignModalOpen(true)}
+                          onManage={() => setIsManageModalOpen(true)}
                         />
                       </div>
                     )}
@@ -183,9 +248,10 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
                           <CollaboratorCard
                             key={collab.id}
                             collaborator={collab as any}
-                            assignmentType="transaction"
+                            assignmentType={localAssignments.find(a => a.collaboratorId === collab.id)?.type || 'transaction'}
                             onResendInvite={() => toast.success("Invitation Resent")}
                             onChat={() => toast.info("Opening Chat...")}
+                            onUpgrade={() => handleUpdateAccess(collab.id, 'client')}
                             onRemoveAccess={canAssign ? () => {
                               setAssignedCollabs(prev => prev.filter(c => c.id !== collab.id));
                               toast.info("Access Removed");
@@ -318,6 +384,31 @@ export const TransactionDetailSidePanel: React.FC<TransactionDetailSidePanelProp
         canInvite={canInvite}
         defaultType="transaction"
         defaultTransactionId={transaction.id}
+      />
+
+      <ManageCollaboratorsModal
+        open={isManageModalOpen}
+        onOpenChange={setIsManageModalOpen}
+        contextType="transaction"
+        client={{ id: transaction.id, name: transaction.address }}
+        assignedCollabs={assignedCollabs.map(c => ({
+          id: c.id,
+          name: c.name,
+          role: c.role || (c.type === 'tc' ? 'TC' : 'Lender'),
+          status: c.status || 'active'
+        }))}
+        assignments={localAssignments}
+        globalPool={GLOBAL_COLLABORATOR_POOL}
+        transactions={[transaction]}
+        onAssign={(collabId, type) => {
+          handleUpdateAccess(collabId, type);
+        }}
+        onUpdateAccess={handleUpdateAccess}
+        onRemove={(collabId) => {
+          setLocalAssignments(prev => prev.filter(a => a.collaboratorId !== collabId));
+          setAssignedCollabs(prev => prev.filter(c => c.id !== collabId));
+          toast.info("Access Removed");
+        }}
       />
 
       <InviteCollaboratorModal

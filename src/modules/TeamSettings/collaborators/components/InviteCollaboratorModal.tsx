@@ -12,10 +12,9 @@ import {
   MapPin,
   ChevronDown,
   ChevronUp,
-  X,
-  Lock,
-  Globe
+  X
 } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "../../../../components/ui/Button";
@@ -46,6 +45,7 @@ import {
 import { Input } from "../../../../components/ui/Input";
 import { RadioGroup, RadioGroupItem } from "../../../../components/ui/radio-group";
 import { Label } from "../../../../components/ui/Label";
+import { Checkbox } from "../../../../components/ui/Checkbox";
 import { CollaboratorType } from "../types";
 import { cn } from "../../../../lib/utils";
 
@@ -62,7 +62,7 @@ const formSchema = z.object({
   city: z.string().optional(),
   state: z.string().optional(),
   zip: z.string().optional(),
-  visibility: z.enum(["private", "shared", "public"]).default("private"),
+  isDefault: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -127,6 +127,7 @@ export function InviteCollaboratorModal({
   onInviteSent,
   existingEmails,
 }: InviteCollaboratorModalProps) {
+  const { currentRole } = useRole();
   const [step, setStep] = useState<1 | 2>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAddressExpanded, setIsAddressExpanded] = useState(false);
@@ -148,7 +149,7 @@ export function InviteCollaboratorModal({
       firstName: "",
       lastName: "",
       email: "",
-      visibility: "private",
+      isDefault: false,
     },
   });
 
@@ -372,6 +373,30 @@ export function InviteCollaboratorModal({
                     </motion.div>
                   )}
 
+                  <FormField
+                    control={form.control}
+                    name="isDefault"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 p-4 rounded-2xl border border-slate-100 bg-[#F8FAFC]">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            className="border-slate-300 data-[state=checked]:bg-[#5A5FF2] data-[state=checked]:border-[#5A5FF2]"
+                          />
+                        </FormControl>
+                        <div className="space-y-0.5 leading-none">
+                          <FieldLabel className="text-[13px] font-bold text-slate-800 cursor-pointer">
+                            {currentRole === 'AGENT' ? 'Set as my default collaborator' : 'Set as default collaborator'}
+                          </FieldLabel>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            {currentRole === 'AGENT' ? 'Automatically assign to all your new clients' : 'Automatically assign to all new clients'}
+                          </p>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
                   <div className="pt-2" ref={addressRef}>
                     <button
                       type="button"
@@ -433,38 +458,6 @@ export function InviteCollaboratorModal({
                       )}
                     </AnimatePresence>
                   </div>
-
-                  <FormField
-                    control={form.control}
-                    name="visibility"
-                    render={({ field }) => (
-                      <FormItem className="pt-2">
-                        <FieldLabel className="text-[12px] text-slate-400 font-bold uppercase ml-1">Visibility Permissions</FieldLabel>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="grid grid-cols-1 sm:grid-cols-3 gap-3"
-                        >
-                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "private" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
-                            <RadioGroupItem value="private" className="sr-only" />
-                            <Lock className={cn("h-5 w-5", field.value === "private" ? "text-[#5A5FF2]" : "text-slate-400")} />
-                            <span className={cn("text-[13px] font-bold", field.value === "private" ? "text-[#5A5FF2]" : "text-slate-900")}>Private</span>
-                          </Label>
-                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "shared" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
-                            <RadioGroupItem value="shared" className="sr-only" />
-                            <Users className={cn("h-5 w-5", field.value === "shared" ? "text-[#5A5FF2]" : "text-slate-400")} />
-                            <span className={cn("text-[13px] font-bold", field.value === "shared" ? "text-[#5A5FF2]" : "text-slate-900")}>Shared</span>
-                          </Label>
-                          <Label className={cn("flex flex-col items-center gap-2 p-3 text-center rounded-2xl border-2 transition-all cursor-pointer", field.value === "public" ? "border-[#5A5FF2] bg-[#5A5FF2]/5" : "border-slate-100 hover:border-slate-200")}>
-                            <RadioGroupItem value="public" className="sr-only" />
-                            <Globe className={cn("h-5 w-5", field.value === "public" ? "text-[#5A5FF2]" : "text-slate-400")} />
-                            <span className={cn("text-[13px] font-bold", field.value === "public" ? "text-[#5A5FF2]" : "text-slate-900")}>Public</span>
-                          </Label>
-                        </RadioGroup>
-                      </FormItem>
-                    )}
-                  />
-
                 </div>
               )}
             </form>

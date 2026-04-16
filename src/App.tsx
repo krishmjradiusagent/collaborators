@@ -5,6 +5,8 @@ import { ClientListPage } from "./modules/Clients/components/ClientListPage"
 import { ClientProfilePage } from "./modules/Clients/components/ClientProfilePage"
 import { Client } from "./modules/Clients/types"
 import { TransactionsPage } from "./modules/Transactions/components/TransactionsPage"
+import { CollaboratorsSection } from "./modules/TeamSettings/CollaboratorsSection"
+import { InboxPage } from "./modules/Inbox/InboxPage"
 import { Settings } from "lucide-react"
 import { Button } from "./components/ui/Button"
 
@@ -50,6 +52,10 @@ function AppContent({ activeTab, setActiveTab, selectedClient, setSelectedClient
       case "Team settings":
       case "Team":
         return <TeamSettingsContent />
+      case "Inbox":
+        return <InboxPage />
+      case "Collaborators":
+          return <div className="w-full h-full overflow-y-auto"><CollaboratorsSection /></div>
       case "Settings":
           return (
              <div className="w-full py-20 px-8">

@@ -6,6 +6,7 @@ import {
   ChevronDown,
   Bell,
   Check,
+  MessageSquare,
 } from "lucide-react"
 import { useRole } from "../contexts/RoleContext"
 import { ContextSwitcher } from "./ContextSwitcher"
@@ -34,12 +35,14 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
     "Billing",
     "Finances",
     "Team settings",
+    "Collaborators",
     "Notification settings",
   ]
 
   const sidebarItems = [
     { icon: Users, label: "Clients" },
     { icon: FileText, label: "Documents" },
+    { icon: MessageSquare, label: "Inbox" },
     { icon: Bell, label: "Security" },
     ...(currentRole === 'TEAM_LEAD' ? [{ icon: Settings, label: "Team" }] : []),
   ]
@@ -176,14 +179,14 @@ export function Layout({ children, activeTab = "Team settings", setActiveTab }: 
         {/* Main Content Area - Total Screen Width, Flush with Sidebar */}
         <main className="flex-1 ml-[72px] bg-white min-h-[calc(100vh-70px)] pb-32">
           {/* Content Wrapper - Full width */}
-          <div className={cn("pt-8 w-full border-t border-transparent", activeTab === "Clients" ? "px-0" : "px-8")}>
-             {activeTab !== "Clients" && activeTab !== "Documents" && (
+          <div className={cn("pt-8 w-full border-t border-transparent", (activeTab === "Clients" || activeTab === "Inbox") ? "px-0 pt-0" : "px-8")}>
+             {activeTab !== "Clients" && activeTab !== "Documents" && activeTab !== "Inbox" && (
                 <>
                   <h1 className="text-[24px] font-semibold text-[#373758] tracking-[-0.48px] mb-8">{activeTab === "Team" ? "Team settings" : activeTab}</h1>
                   
                   {/* Tabs - Only for Team settings / General settings */}
                   <nav className="flex items-center border-b border-[#EFEFEF] w-full mb-6">
-                      {tabs.map((tab) => (
+                    {tabs.map((tab) => (
                         <button
                           key={tab}
                           onClick={() => setActiveTab?.(tab)}

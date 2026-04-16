@@ -10,7 +10,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/Label";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { Search, X, Users, Lock, Globe } from "lucide-react";
+import { Search, X, Users } from "lucide-react";
 import { Collaborator } from "../types";
 import { cn } from "@/lib/utils";
 
@@ -20,28 +20,6 @@ interface ManageCollaborationModalProps {
   collaborator: Collaborator;
 }
 
-const VISIBILITY_OPTIONS = [
-  {
-    id: "private",
-    label: "Private",
-    description: "Only accessible to you.",
-    icon: Lock,
-  },
-  {
-    id: "shared",
-    label: "Shared",
-    description: "Accessible to specific, selected agents.",
-    icon: Users,
-  },
-  {
-    id: "public",
-    label: "Public",
-    description: "Accessible to all agents in your organization.",
-    icon: Globe,
-  },
-] as const;
-
-type VisibilityLevel = "private" | "shared" | "public";
 
 const MOCK_ALL_AGENTS = [
   { id: "a1", name: "Sarah Connor", email: "sarah@radius.com" },
@@ -54,7 +32,6 @@ export function ManageCollaborationModal({
   onOpenChange,
   collaborator,
 }: ManageCollaborationModalProps) {
-  const [visibility, setVisibility] = useState<VisibilityLevel>("private");
   const [searchQuery, setSearchQuery] = useState("");
   const [sharedAgents, setSharedAgents] = useState<typeof MOCK_ALL_AGENTS>([]);
 
@@ -87,122 +64,75 @@ export function ManageCollaborationModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          <div>
-            <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-              Visibility Permissions
+          <div className="animate-in fade-in slide-in-from-top-2">
+            <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+              Shared Agents
             </h3>
-            <RadioGroup
-              value={visibility}
-              onValueChange={(val) => setVisibility(val as VisibilityLevel)}
-              className="gap-3"
-            >
-              {VISIBILITY_OPTIONS.map((option) => (
-                <Label
-                  key={option.id}
-                  className={cn(
-                    "flex flex-row items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer bg-white group",
-                    visibility === option.id
-                      ? "border-[#5A5FF2] bg-[#5A5FF2]/5"
-                      : "border-slate-100 hover:border-slate-200"
-                  )}
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={cn(
-                        "p-2.5 rounded-xl transition-all",
-                        visibility === option.id
-                          ? "bg-[#5A5FF2] text-white shadow-md"
-                          : "bg-slate-50 text-slate-500 group-hover:bg-slate-100"
-                      )}
-                    >
-                      <option.icon className="w-5 h-5" />
-                    </div>
-                    <div className="space-y-0.5">
-                      <p className={cn("font-bold text-[15px]", visibility === option.id ? "text-[#5A5FF2]" : "text-slate-900")}>
-                        {option.label}
-                      </p>
-                      <p className="text-[13px] text-slate-500 font-medium">
-                        {option.description}
-                      </p>
-                    </div>
-                  </div>
-                  <RadioGroupItem value={option.id} className="sr-only" />
-                </Label>
-              ))}
-            </RadioGroup>
-          </div>
+            
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search to add agents..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 h-10 bg-[#F8FAFC] border-none rounded-xl"
+              />
+            </div>
 
-          {visibility === "shared" && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-              <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Shared Agents
-              </h3>
-              
-              <div className="relative">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input
-                  placeholder="Search to add agents..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 h-10 bg-[#F8FAFC] border-none rounded-xl"
-                />
+            {searchQuery && filteredAgents.length > 0 && (
+              <div className="bg-white border text-sm rounded-xl overflow-hidden shadow-sm mt-4">
+                {filteredAgents.map((agent) => (
+                  <button
+                    key={agent.id}
+                    onClick={() => addAgent(agent)}
+                    className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between border-b last:border-0"
+                  >
+                    <div>
+                      <p className="font-bold text-slate-900">{agent.name}</p>
+                      <p className="text-slate-500 text-[12px]">{agent.email}</p>
+                    </div>
+                    <span className="text-[#5A5FF2] text-[12px] font-bold uppercase tracking-wider bg-[#5A5FF2]/10 px-2 py-1 rounded-md">
+                      Add
+                    </span>
+                  </button>
+                ))}
               </div>
+            )}
 
-              {searchQuery && filteredAgents.length > 0 && (
-                <div className="bg-white border text-sm rounded-xl overflow-hidden shadow-sm">
-                  {filteredAgents.map((agent) => (
-                    <button
+            {sharedAgents.length > 0 && (
+              <div className="space-y-2 mt-6">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
+                  Current Members ({sharedAgents.length})
+                </p>
+                <div className="space-y-2">
+                  {sharedAgents.map((agent) => (
+                    <div
                       key={agent.id}
-                      onClick={() => addAgent(agent)}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-50 flex items-center justify-between border-b last:border-0"
+                      className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white"
                     >
-                      <div>
-                        <p className="font-bold text-slate-900">{agent.name}</p>
-                        <p className="text-slate-500 text-[12px]">{agent.email}</p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-[12px]">
+                          {agent.name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 text-[13px]">{agent.name}</p>
+                          <p className="text-slate-400 text-[11px]">{agent.email}</p>
+                        </div>
                       </div>
-                      <span className="text-[#5A5FF2] text-[12px] font-bold uppercase tracking-wider bg-[#5A5FF2]/10 px-2 py-1 rounded-md">
-                        Add
-                      </span>
-                    </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeAgent(agent.id)}
+                        className="text-slate-400 hover:text-red-500 hover:bg-red-50 h-8 w-8"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
                   ))}
                 </div>
-              )}
-
-              {sharedAgents.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    Current Members ({sharedAgents.length})
-                  </p>
-                  <div className="space-y-2">
-                    {sharedAgents.map((agent) => (
-                      <div
-                        key={agent.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-white"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 text-[12px]">
-                            {agent.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-900 text-[13px]">{agent.name}</p>
-                            <p className="text-slate-400 text-[11px]">{agent.email}</p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => removeAgent(agent.id)}
-                          className="text-slate-400 hover:text-red-500 hover:bg-red-50 h-8 w-8"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="mt-8 flex justify-end gap-3">

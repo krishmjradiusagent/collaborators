@@ -34,19 +34,19 @@ interface ManageCollaboratorsModalProps {
   isGlobal?: boolean
   contextType?: 'client' | 'transaction'
 }
-
 export function ManageCollaboratorsModal({
   open,
   onOpenChange,
-  client,
-  assignedCollabs,
-  assignments,
-  transactions,
-  globalPool,
-  onRemove,
-  onUpdateAccess,
-  onRemoveAll,
-  onOpenInvite,
+  client = { id: '', name: '' },
+  assignedCollabs = [],
+  assignments = [],
+  transactions = [],
+  globalPool = [],
+  onRemove = () => { },
+  onUpdateAccess = () => { },
+  onRemoveAll = () => { },
+  onAssign = () => { },
+  onOpenInvite = () => { },
   isGlobal = false,
   contextType = 'client'
 }: ManageCollaboratorsModalProps) {
@@ -55,10 +55,10 @@ export function ManageCollaboratorsModal({
   const [isSearching, setIsSearching] = React.useState(false)
   const [expandedCollabId, setExpandedCollabId] = React.useState<string | null>(null)
 
-  const filteredPool = globalPool.filter(c => 
-    !assignedCollabs.find(ac => ac.name === c.name) && // Matching by name in mock
-    (c.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-     c.role.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredPool = (globalPool || []).filter(c =>
+    !(assignedCollabs || []).some(ac => ac.name === c.name) && // Matching by name in mock
+    (c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.role?.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const handleRemove = async (id: string, name: string) => {
@@ -87,7 +87,7 @@ export function ManageCollaboratorsModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         aria-describedby="manage-collabs-description"
         className="sm:max-w-[480px] bg-white rounded-[32px] border-none shadow-[0px_32px_80px_rgba(0,0,0,0.18)] p-0 overflow-hidden flex flex-col"
       >
@@ -103,14 +103,16 @@ export function ManageCollaboratorsModal({
                 Managing collaborators for <span className="text-slate-900 font-bold">{client.name}</span>
               </DialogDescription>
             </div>
-            <Button 
-                variant="ghost" 
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
                 size="sm"
                 className="text-red-500 hover:text-red-600 hover:bg-red-50/50 font-bold rounded-xl px-3 h-8 text-[10px] uppercase tracking-wider"
                 onClick={onRemoveAll}
-            >
+              >
                 Revoke All
-            </Button>
+              </Button>
+            </div>
           </DialogHeader>
 
           {/* Inline Search Bar */}
@@ -120,8 +122,8 @@ export function ManageCollaboratorsModal({
               isSearching && "bg-white border-[#5A5FF2] ring-4 ring-[#5A5FF2]/5 shadow-sm"
             )}>
               <Search className={cn("size-4 transition-colors", isSearching ? "text-[#5A5FF2]" : "text-slate-400")} />
-              <input 
-                placeholder="Search team members to add..." 
+              <input
+                placeholder="Search team members to add..."
                 className="flex-1 bg-transparent border-none outline-none text-[13px] font-medium placeholder:text-slate-400"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -138,7 +140,7 @@ export function ManageCollaboratorsModal({
             {/* Search Results Dropdown */}
             <AnimatePresence>
               {isSearching && searchQuery.length > 0 && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.98 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.98 }}
@@ -157,7 +159,7 @@ export function ManageCollaboratorsModal({
                         key={c.id}
                         whileHover={{ x: 4 }}
                         onClick={() => {
-                          onAssign(c.id, 'transaction', [client.id]) 
+                          onAssign(c.id, 'transaction', [client.id])
                           setSearchQuery("")
                         }}
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-[#5A5FF2]/5 transition-all group"
@@ -204,7 +206,7 @@ export function ManageCollaboratorsModal({
                   const isClientAccess = memberAssignments.some(a => a.assignmentType === 'client')
                   const primaryAssignment = memberAssignments[0]
                   const otherCount = memberAssignments.length - 1
-                  
+
                   return (
                     <motion.div
                       key={collab.id}
@@ -224,8 +226,8 @@ export function ManageCollaboratorsModal({
                             <h4 className="font-bold text-[14px] text-[#171717]">{collab.name}</h4>
                             <div className="flex items-center gap-2 mt-0.5">
                               <Badge variant="slate" className="h-4 px-1.5 rounded text-[8px] font-black tracking-wider uppercase">{collab.role}</Badge>
-                              {contextType === 'client' && !isClientAccess && (
-                                <button 
+                              {!isClientAccess && (
+                                <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleUpgrade(collab.id);
@@ -248,8 +250,8 @@ export function ManageCollaboratorsModal({
                           size="icon"
                           className="size-8 text-slate-200 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
                           onClick={(e) => {
-                             e.stopPropagation();
-                             handleRemove(collab.id, collab.name);
+                            e.stopPropagation();
+                            handleRemove(collab.id, collab.name);
                           }}
                           disabled={isSubmitting === collab.id}
                         >
@@ -259,92 +261,91 @@ export function ManageCollaboratorsModal({
 
                       <Separator className="bg-slate-50 my-3" />
 
-                      <button 
+                      <button
                         onClick={() => setExpandedCollabId(expandedCollabId === collab.id ? null : collab.id)}
                         className="w-full flex items-center justify-between bg-slate-50/50 rounded-xl px-3 py-2 border border-slate-100/50 hover:bg-white hover:border-slate-100 transition-all group/toggle"
                       >
                         <div className="flex flex-col gap-0.5 min-w-0 text-left">
                           <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-tight">Access Level</span>
                           {isClientAccess ? (
-                             <div className="flex items-center gap-2">
-                                <Building2 className="size-3 text-[#5A5FF2]" />
-                                <span className="text-[11px] font-bold text-slate-900">All Client Transactions</span>
-                             </div>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="size-3 text-[#5A5FF2]" />
+                              <span className="text-[11px] font-bold text-slate-900">All Client Transactions</span>
+                            </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                               <Badge className="bg-white border-slate-100 text-slate-700 shadow-sm rounded-lg h-6 px-2 font-bold text-[10px] gap-1.5 max-w-[120px]">
-                                 <span className="truncate">{transactions.find(t => t.id === primaryAssignment?.transactionId)?.address?.split(',')[0] || client.name.split(',')[0]}</span>
-                                 {otherCount > 0 && <span className="text-[#5A5FF2]">+{otherCount}</span>}
-                               </Badge>
-                               
-                               {!isGlobal && (
-                                 <Popover>
-                                   <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                     <button className="size-6 rounded-lg border border-dashed border-slate-300 flex items-center justify-center hover:border-[#5A5FF2] hover:text-[#5A5FF2] text-slate-400 transition-all bg-white">
-                                       <Plus className="size-3" />
-                                     </button>
-                                   </PopoverTrigger>
-                                   <PopoverContent 
-                                      className="w-[200px] p-1.5 rounded-xl border-slate-100 shadow-2xl z-[300] bg-white/95 backdrop-blur-xl" 
-                                      align="start"
-                                      onClick={(e) => e.stopPropagation()}
-                                   >
-                                      <p className="px-2 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Add more properties</p>
-                                      <div className="space-y-1 mt-1 max-h-[200px] overflow-y-auto no-scrollbar">
-                                        {transactions.filter(t => !memberAssignments.some(ma => ma.transactionId === t.id)).map(t => (
-                                          <button 
-                                            key={t.id} 
-                                            onClick={() => {
-                                              onAssign(collab.id, 'transaction', [t.id])
-                                              toast.success("Transaction Added", {
-                                                description: `${t.address.split(',')[0]} linked to ${collab.name}.`
-                                              })
-                                            }}
-                                            className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-[#5A5FF2] text-[11px] font-bold text-slate-700 hover:text-white flex items-center justify-between group/row transition-all"
-                                          >
-                                            <span className="truncate">{t.address.split(',')[0]}</span>
-                                            <Plus className="size-3 opacity-0 group-hover/row:opacity-100 text-white" />
-                                          </button>
-                                        ))}
-                                      </div>
-                                   </PopoverContent>
-                                 </Popover>
-                               )}
+                              <Badge className="bg-white border-slate-100 text-slate-700 shadow-sm rounded-lg h-6 px-2 font-bold text-[10px] gap-1.5 max-w-[120px]">
+                                <span className="truncate">{transactions.find(t => t.id === primaryAssignment?.transactionId)?.address?.split(',')[0] || (client.name || 'Unknown').split(',')[0]}</span>
+                                {otherCount > 0 && <span className="text-[#5A5FF2]">+{otherCount}</span>}
+                              </Badge>
+
+                              {!isGlobal && (
+                                <Popover>
+                                  <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                    <button className="size-6 rounded-lg border border-dashed border-slate-300 flex items-center justify-center hover:border-[#5A5FF2] hover:text-[#5A5FF2] text-slate-400 transition-all bg-white">
+                                      <Plus className="size-3" />
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-[200px] p-1.5 rounded-xl border-slate-100 shadow-2xl z-[300] bg-white/95 backdrop-blur-xl"
+                                    align="start"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <p className="px-2 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Add more properties</p>
+                                    <div className="space-y-1 mt-1 max-h-[200px] overflow-y-auto no-scrollbar">
+                                      {(transactions || []).filter(t => t?.address && !memberAssignments.some(ma => ma.transactionId === t.id)).map(t => (
+                                        <button
+                                          key={t.id}
+                                          onClick={() => {
+                                            onAssign(collab.id, 'transaction', [t.id])
+                                            toast.success("Transaction Added", {
+                                              description: `${(t.address || '').split(',')[0]} linked to ${collab.name}.`
+                                            })
+                                          }}
+                                          className="w-full text-left px-2 py-1.5 rounded-lg hover:bg-[#5A5FF2] text-[11px] font-bold text-slate-700 hover:text-white flex items-center justify-between group/row transition-all"
+                                        >
+                                          <span className="truncate">{(t.address || '').split(',')[0]}</span>
+                                          <Plus className="size-3 opacity-0 group-hover/row:opacity-100 text-white" />
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                              )}
                             </div>
                           )}
                           {contextType === 'client' && !isClientAccess && (
-                             <div className="flex flex-col gap-1 mt-2 pl-1">
-                               <p className="text-[10px] text-slate-400">
-                                 Want to add transaction?{" "}
-                                 <button 
-                                   onClick={() => {
-                                     toast.info("Opening Transaction View", { icon: "🏘️" });
-                                     // In a real app, this would route to transaction list or open that modal
-                                   }}
-                                   className="text-[#5A5FF2] hover:underline font-bold"
-                                 >
-                                   Click here
-                                 </button>
-                               </p>
-                             </div>
-                           )}
+                            <div className="flex flex-col gap-1 mt-2 pl-1">
+                              <p className="text-[10px] text-slate-400">
+                                Want to add transaction?{" "}
+                                <button
+                                  onClick={() => {
+                                    toast.info("Opening Transaction View", { icon: "🏘️" });
+                                  }}
+                                  className="text-[#5A5FF2] hover:underline font-bold"
+                                >
+                                  Click here
+                                </button>
+                              </p>
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-1.5">
-                           <span className={cn(
-                             "text-[10px] font-bold transition-colors",
-                             expandedCollabId === collab.id ? "text-slate-900" : "text-[#5A5FF2]"
-                           )}>
-                             {expandedCollabId === collab.id ? "Minimize" : "Context"}
-                           </span>
-                           <motion.div
-                             animate={{ rotate: expandedCollabId === collab.id ? 90 : 0 }}
-                             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                           >
-                              <ChevronRight className={cn(
-                                "size-3 transition-colors",
-                                expandedCollabId === collab.id ? "text-slate-900" : "text-[#5A5FF2]"
-                              )} />
-                           </motion.div>
+                          <span className={cn(
+                            "text-[10px] font-bold transition-colors",
+                            expandedCollabId === collab.id ? "text-slate-900" : "text-[#5A5FF2]"
+                          )}>
+                            {expandedCollabId === collab.id ? "Minimize" : "Context"}
+                          </span>
+                          <motion.div
+                            animate={{ rotate: expandedCollabId === collab.id ? 90 : 0 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          >
+                            <ChevronRight className={cn(
+                              "size-3 transition-colors",
+                              expandedCollabId === collab.id ? "text-slate-900" : "text-[#5A5FF2]"
+                            )} />
+                          </motion.div>
                         </div>
                       </button>
 
@@ -359,51 +360,51 @@ export function ManageCollaboratorsModal({
                             className="overflow-hidden"
                           >
                             <div className="pt-4 space-y-3">
-                               <div className="flex flex-col gap-2">
-                                  <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Active Locations</h5>
-                                  <div className="space-y-1.5">
-                                     {isClientAccess ? (
-                                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
-                                          <div className="size-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
-                                             <Building2 className="size-4 text-[#5A5FF2]" />
+                              <div className="flex flex-col gap-2">
+                                <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Active Locations</h5>
+                                <div className="space-y-1.5">
+                                  {isClientAccess ? (
+                                    <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center gap-3">
+                                      <div className="size-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+                                        <Building2 className="size-4 text-[#5A5FF2]" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[11px] font-bold text-slate-900">Global Hierarchy</p>
+                                        <p className="text-[10px] text-slate-400 font-medium">Automatic access to all {transactions.length} properties</p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    (memberAssignments || []).map(ma => {
+                                      const tx = (transactions || []).find(t => t.id === ma.transactionId) || { address: client.name || 'Unknown' };
+                                      return (
+                                        <div key={ma.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                                          <div className="flex items-center gap-3">
+                                            <div className="size-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+                                              <Building2 className="size-4 text-slate-400" />
+                                            </div>
+                                            <div>
+                                              <p className="text-[11px] font-bold text-slate-900">
+                                                {(tx.address || '').split(',')[0]}
+                                              </p>
+                                              <p className="text-[10px] text-slate-400 font-medium">Linked Transaction Context</p>
+                                            </div>
                                           </div>
-                                          <div>
-                                             <p className="text-[11px] font-bold text-slate-900">Global Hierarchy</p>
-                                             <p className="text-[10px] text-slate-400 font-medium">Automatic access to all {transactions.length} properties</p>
-                                          </div>
-                                       </div>
-                                     ) : (
-                                       memberAssignments.map(ma => {
-                                         const tx = transactions.find(t => t.id === ma.transactionId) || { address: client.name };
-                                         return (
-                                           <div key={ma.id} className="p-3 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
-                                              <div className="flex items-center gap-3">
-                                                <div className="size-8 rounded-lg bg-white flex items-center justify-center border border-slate-100 shadow-sm">
-                                                   <Building2 className="size-4 text-slate-400" />
-                                                </div>
-                                                <div>
-                                                   <p className="text-[11px] font-bold text-slate-900">
-                                                      {tx.address.split(',')[0]}
-                                                   </p>
-                                                   <p className="text-[10px] text-slate-400 font-medium">Linked Transaction Context</p>
-                                                </div>
-                                              </div>
-                                              <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-red-500 hover:bg-red-50 uppercase px-2 rounded-lg">
-                                                 Revoke
-                                              </Button>
-                                           </div>
-                                         )
-                                       })
-                                     )}
-                                  </div>
-                               </div>
-                               
-                               <div className="p-3 rounded-xl bg-[#5A5FF2]/5 border border-[#5A5FF2]/10 flex items-center gap-2">
-                                  <Shield className="size-3.5 text-[#5A5FF2]" />
-                                  <p className="text-[10px] font-bold text-[#5A5FF2]">
-                                     Permissions sync automatically across context.
-                                  </p>
-                               </div>
+                                          <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold text-red-500 hover:bg-red-50 uppercase px-2 rounded-lg">
+                                            Revoke
+                                          </Button>
+                                        </div>
+                                      )
+                                    })
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="p-3 rounded-xl bg-[#5A5FF2]/5 border border-[#5A5FF2]/10 flex items-center gap-2">
+                                <Shield className="size-3.5 text-[#5A5FF2]" />
+                                <p className="text-[10px] font-bold text-[#5A5FF2]">
+                                  Permissions sync automatically across context.
+                                </p>
+                              </div>
                             </div>
                           </motion.div>
                         )}
@@ -425,7 +426,7 @@ export function ManageCollaboratorsModal({
             Client-level access syncs across all transaction contexts automatically.
           </p>
           <div className="flex-1" />
-          <Button 
+          <Button
             className="h-8 rounded-xl bg-slate-900 hover:bg-slate-800 border-none px-4 text-[11px] font-bold text-white transition-all shadow-md shadow-slate-900/10"
             onClick={() => onOpenChange(false)}
           >

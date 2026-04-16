@@ -52,7 +52,7 @@ export function CollaboratorsSection() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [removeTarget, setRemoveTarget] = useState<Collaborator | null>(null);
 
-  const { canAssign } = useRole();
+  const { canAssign, currentRole } = useRole();
   const hasAccess = canAssign;
 
   if (!hasAccess) {
@@ -110,14 +110,16 @@ export function CollaboratorsSection() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            className="h-10 px-4 rounded-full border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all hidden md:flex"
-            onClick={() => setIsSettingsModalOpen(true)}
-          >
-            <Settings className="size-4 mr-2" />
-            Manage Defaults
-          </Button>
+          {currentRole !== 'AGENT' && (
+            <Button 
+              variant="outline"
+              className="h-10 px-4 rounded-full border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all hidden md:flex"
+              onClick={() => setIsSettingsModalOpen(true)}
+            >
+              <Settings className="size-4 mr-2" />
+              Manage Defaults
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

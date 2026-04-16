@@ -13,6 +13,7 @@ import {
   User,
   ArrowUpRight,
   ChevronRight,
+  UserCheck,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -141,6 +142,8 @@ export function TransactionsPage() {
   const [selectedClient] = React.useState<any>(null)
   const [transactions, setTransactions] = React.useState(mockTransactions)
   const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
+
+  const currentSelectedTx = transactions.find(t => t.id === selectedTx?.id) || selectedTx;
 
   const { isCollaborator, selectedTransaction, canInvite } = useRole()
 
@@ -333,7 +336,7 @@ export function TransactionsPage() {
                 <div className="flex items-center gap-3 pr-1">
                   <Button 
                     onClick={() => {
-                      setSelectedTxId(selectedIds[0]); // Default to first selected for management context
+                      setSelectedTxId(selectedIds[0]);
                       setIsAssignModalOpen(true);
                     }}
                     className="bg-[#5A5FF2] hover:bg-[#4B50D9] text-white rounded-[30px] px-8 h-12 font-black text-[14px] gap-3 shadow-xl shadow-[#5A5FF2]/20 border-none active:scale-95 transition-all group/bulk-btn"
@@ -370,7 +373,7 @@ export function TransactionsPage() {
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Purchase Price <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                   <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Status <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Agent Name <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
-                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Collaborators <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
+                      <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider min-w-[200px]">Collaborators <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Acceptance Date <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Last updated <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
                       <TableHead className="text-[10px] uppercase font-bold text-slate-500 tracking-wider whitespace-nowrap">Close Of Escrow <ChevronDown className="size-3 inline-block ml-1 opacity-50" /></TableHead>
@@ -434,14 +437,16 @@ export function TransactionsPage() {
                                 <span className="text-[11px] text-slate-400 font-medium tracking-wide border-b border-dotted border-slate-200 w-fit">Primary Agent</span>
                              </div>
                           </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <CollaboratorAvatarStack 
-                        collaborators={tx.collaborators}
-                        onManage={() => {
-                          setSelectedTx(tx);
-                          setIsManageModalOpen(true);
-                        }}
-                      />
+                    <TableCell onClick={(e) => e.stopPropagation()} className="min-w-[200px]">
+                      <div className="flex items-center gap-2">
+                        <CollaboratorAvatarStack 
+                          collaborators={tx.collaborators}
+                          onManage={() => {
+                            setSelectedTx(tx);
+                            setIsManageModalOpen(true);
+                          }}
+                        />
+                      </div>
                     </TableCell>
                          <TableCell className="text-[12px] text-[#1f2937] font-medium">
                             {tx.acceptanceDate}
@@ -497,11 +502,16 @@ export function TransactionsPage() {
       <AssignCollaboratorModal 
         open={isAssignModalOpen}
         onOpenChange={setIsAssignModalOpen}
-        onAssign={(collabId, _type, txnId) => {
+        onAssign={(collabId, type, txnId) => {
           const collab = INITIAL_COLLABORATORS.find(c => c.id === collabId);
-          if (collab) {
+          const targetTxId = txnId || selectedTxId;
+          
+          if (collab && targetTxId) {
+            // Update the transaction's collaborator list for the UI stack
             setTransactions(prev => prev.map(t => {
-              if (t.id === (txnId || selectedTxId)) {
+              if (t.id === targetTxId) {
+                // Prevent duplicate additions in mock state
+                if (t.collaborators.some(c => c.id === collab.id)) return t;
                 return {
                   ...t,
                   collaborators: [...t.collaborators, {
@@ -514,8 +524,22 @@ export function TransactionsPage() {
               }
               return t;
             }));
+
+            // Sync with local assignments for the management modal
+            setLocalAssignments(prev => [
+              ...prev,
+              {
+                id: `a-${Date.now()}`,
+                clientId: '1', // Mock client ID
+                transactionId: targetTxId,
+                collaboratorId: collabId,
+                assignmentType: type,
+                assignedAt: new Date().toISOString()
+              }
+            ]);
+
             toast.success("Assignment Confirmed", {
-              description: `Collaborator assigned to Transaction Level access.`,
+              description: `Collaborator assigned to ${type === 'client' ? 'Client' : 'Transaction'} Level access.`,
               className: "bg-[#5A5FF2] text-white",
             });
           }
@@ -540,43 +564,58 @@ export function TransactionsPage() {
         defaultType="transaction"
         defaultTransactionId={selectedTx?.id || selectedTxId}
         canInvite={canInvite}
-        context={isDetailPageOpen ? 'transaction-detail' : 'default'}
+        context={isDetailPageOpen ? 'transaction-detail' : 'transaction-list'}
       />
       <CreateTransactionWizard 
         open={isCreateWizardOpen}
         onOpenChange={setIsCreateWizardOpen}
       />
 
-{
-  selectedTx && (
-    <ManageCollaboratorsModal
-      open={isManageModalOpen}
-      onOpenChange={setIsManageModalOpen}
-      contextType="transaction"
-      client={{ id: selectedTx.id, name: selectedTx.address }}
-      assignedCollabs={GLOBAL_COLLABORATOR_POOL.filter(c =>
-        selectedTx.collaborators.some(ac => ac.name === c.name) // Matching by name in mock
-      )}
-      assignments={localAssignments}
-      globalPool={GLOBAL_COLLABORATOR_POOL}
-      transactions={transactions.map(t => ({
-        id: t.id,
-        clientId: 'client-1',
-        address: t.address,
-        status: 'Active' as any
-      }))}
-      onRemove={(id) => {
-        const collab = GLOBAL_COLLABORATOR_POOL.find(c => c.id === id);
-        if (collab) {
-          setTransactions(prev => prev.map(t => t.id === selectedTx.id ? { ...t, collaborators: t.collaborators.filter(c => c.name !== collab.name) } : t));
-        }
-      }}
-      onRemoveAll={() => {
-        setTransactions(prev => prev.map(t => t.id === selectedTx.id ? { ...t, collaborators: [] } : t));
-        setIsManageModalOpen(false);
-      }}
-      onUpdateAccess={(_id, newType) => {
+      {isManageModalOpen && currentSelectedTx && (
+        <ManageCollaboratorsModal
+          open={isManageModalOpen}
+          onOpenChange={setIsManageModalOpen}
+          contextType="transaction"
+          client={{ id: currentSelectedTx.id, name: currentSelectedTx.address }}
+          assignedCollabs={GLOBAL_COLLABORATOR_POOL.filter(c => 
+            currentSelectedTx.collaborators.some(ac => ac.name === c.name)
+          )}
+          assignments={localAssignments}
+          globalPool={GLOBAL_COLLABORATOR_POOL}
+          transactions={transactions.map(t => ({
+            id: t.id,
+            clientId: '1',
+            address: t.address,
+            status: 'Active' as any
+          }))}
+          onRemove={(id) => {
+            const collab = GLOBAL_COLLABORATOR_POOL.find(c => c.id === id);
+            if (collab) {
+              setTransactions(prev => prev.map(t => t.id === currentSelectedTx.id ? { ...t, collaborators: t.collaborators.filter(c => c.name !== collab.name) } : t));
+            }
+          }}
+          onRemoveAll={() => {
+            setTransactions(prev => prev.map(t => t.id === currentSelectedTx.id ? { ...t, collaborators: [] } : t));
+            setIsManageModalOpen(false);
+          }}
+      onUpdateAccess={(collabId, newType) => {
         if (newType === 'client') {
+            setLocalAssignments(prev => {
+              // Find first assignment for this collab to get clientId if available
+              const firstAssignment = prev.find(a => a.collaboratorId === collabId);
+              const clientId = firstAssignment?.clientId || '1';
+              
+              return [
+                ...prev.filter(a => a.collaboratorId !== collabId), // Remove specific transaction assignments
+                {
+                  id: `a-client-${Date.now()}-${collabId}`,
+                  clientId,
+                  collaboratorId: collabId,
+                  assignmentType: 'client',
+                  assignedAt: new Date().toISOString()
+                }
+              ];
+            });
             toast.success("Access Level Updated", {
                 description: `Collaborator upgraded to Client Level access.`,
                 className: "bg-[#5A5FF2] text-white",
@@ -607,19 +646,17 @@ export function TransactionsPage() {
       }}
       onOpenInvite={() => setIsInviteModalOpen(true)}
     />
-  )
-}
-
-<InviteCollaboratorModal
-  open={isInviteModalOpen}
-  onOpenChange={setIsInviteModalOpen}
-  onInviteSent={(data) => {
-    toast.success("Invitation Sent", {
-      description: `Collaborator ${data.firstName} ${data.lastName} invited.`
-    });
-  }}
-  existingEmails={INITIAL_COLLABORATORS.map(c => c.email)}
-/>
-    </div >
-  )
+  )}
+      <InviteCollaboratorModal
+        open={isInviteModalOpen}
+        onOpenChange={setIsInviteModalOpen}
+        onInviteSent={(data) => {
+          toast.success("Invitation Sent", {
+            description: `Collaborator ${data.firstName} ${data.lastName} invited.`
+          });
+        }}
+        existingEmails={INITIAL_COLLABORATORS.map(c => c.email)}
+      />
+    </div>
+  );
 }

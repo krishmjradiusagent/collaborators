@@ -30,9 +30,9 @@ export function CollaboratorTable({
               <TableHead className="w-[200px] pl-8 text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none">Identity</TableHead>
               <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none text-center">Category</TableHead>
               <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none">Authentication</TableHead>
-              <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none text-center px-4">Access Level</TableHead>
+              <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none text-center">Defaults</TableHead>
               <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none text-center">Status</TableHead>
-              <TableHead className="text-[12px] font-bold text-gray-400 uppercase tracking-widest leading-none text-right pr-8">Managing</TableHead>
+
               <TableHead className="w-[50px] pr-8"></TableHead>
             </TableRow>
           </TableHeader>
@@ -47,7 +47,7 @@ export function CollaboratorTable({
             ))}
             {collaborators.length === 0 && (
               <TableRow className="border-0 hover:bg-transparent">
-                <TableCell colSpan={7} className="h-40 text-center">
+                  <TableCell colSpan={6} className="h-40 text-center">
                   <div className="flex flex-col items-center gap-2 opacity-40 text-slate-400">
                      <Search className="h-8 w-8 text-slate-300" />
                      <p className="font-bold uppercase text-[10px] tracking-widest">No matching collaborators found</p>

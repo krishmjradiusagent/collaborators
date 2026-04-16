@@ -35,6 +35,7 @@ interface CollaboratorCardProps {
   onRemoveAccess?: () => void;
   onViewProfile?: () => void;
   onChat?: () => void;
+  onUpgrade?: () => void;
 }
 
 export function CollaboratorCard({
@@ -44,7 +45,8 @@ export function CollaboratorCard({
   onResendInvite,
   onRemoveAccess,
   onViewProfile,
-  onChat
+  onChat,
+  onUpgrade
 }: CollaboratorCardProps) {
   const isInvited = collaborator.status === 'invited';
 
@@ -157,6 +159,14 @@ export function CollaboratorCard({
               {isInvited && (
                 <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-slate-50 focus:text-[#5A5FF2] rounded-xl font-bold text-[13px]" onClick={() => onResendInvite?.()}>
                   <Clock className="h-4 w-4" /> Resend Credentials
+                </DropdownMenuItem>
+              )}
+              {assignmentType === 'transaction' && (
+                <DropdownMenuItem 
+                  className="gap-3 p-3 cursor-pointer focus:bg-emerald-50 focus:text-emerald-600 rounded-xl font-bold text-[13px]" 
+                  onClick={() => onUpgrade?.()}
+                >
+                  <UserCheck className="h-4 w-4" /> Upgrade to Client Access
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem className="gap-3 p-3 cursor-pointer focus:bg-red-50 focus:text-red-600 rounded-xl font-bold text-[13px] group" onClick={() => onRemoveAccess?.()}>

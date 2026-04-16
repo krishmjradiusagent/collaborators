@@ -11,7 +11,8 @@ import {
   FileText,
   Mail,
   ShieldCheck,
-  ChevronRight
+  ChevronRight,
+  UserCheck
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -32,6 +33,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/Tooltip"
 
+import { ManageCollaboratorsModal } from "../../Clients/components/ManageCollaboratorsModal"
+import { MOCK_ASSIGNMENTS } from "../../Clients/mockData"
+
 interface TransactionDetailPageProps {
   transaction: Transaction
   onBack: () => void
@@ -41,10 +45,36 @@ interface TransactionDetailPageProps {
 export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction }: TransactionDetailPageProps) {
   const [activeTab, setActiveTab] = React.useState("Document preparation")
   const [isAssignModalOpen, setIsAssignModalOpen] = React.useState(false)
+  const [isManageModalOpen, setIsManageModalOpen] = React.useState(false)
+  const [localAssignments, setLocalAssignments] = React.useState<any[]>(MOCK_ASSIGNMENTS)
 
   const tabs = ["Document preparation", "Sent envelopes"]
 
-  const handleAssign = (collaboratorId: string, _type: 'client' | 'transaction', _transactionIds?: string[]) => {
+  const handleUpdateAccess = (collabId: string, newType: 'client' | 'transaction') => {
+    if (newType === 'client') {
+      setLocalAssignments(prev => {
+        const firstAssignment = prev.find(a => a.collaboratorId === collabId);
+        const clientId = firstAssignment?.clientId || '1';
+        
+        return [
+          ...prev.filter(a => a.collaboratorId !== collabId),
+          {
+            id: `a-client-${Date.now()}-${collabId}`,
+            clientId,
+            collaboratorId: collabId,
+            assignmentType: 'client',
+            assignedAt: new Date().toISOString()
+          }
+        ];
+      });
+      toast.success("Access Level Updated", {
+          description: `Collaborator upgraded to Client Level access.`,
+          className: "bg-[#5A5FF2] text-white",
+      });
+    }
+  };
+
+  const handleAssign = (collaboratorId: string, type: 'client' | 'transaction', _transactionIds?: string[]) => {
     const collab = INITIAL_COLLABORATORS.find(c => c.id === collaboratorId)
     if (collab) {
       const newCollaborator: Collaborator = {
@@ -58,6 +88,24 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
         ...transaction,
         collaborators: [...transaction.collaborators, newCollaborator]
       })
+
+      // Sync with local assignments for management modal consistency
+      setLocalAssignments(prev => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          clientId: '1',
+          collaboratorId: collaboratorId,
+          transactionId: transaction.id,
+          assignmentType: type,
+          assignedAt: new Date().toISOString()
+        }
+      ]);
+      
+      toast.success("Assignment Confirmed", {
+        description: `Collaborator assigned to ${type === 'client' ? 'Client' : 'Transaction'} Level access.`,
+        className: "bg-[#5A5FF2] text-white",
+      });
     }
   }
 
@@ -108,7 +156,8 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
                     {transaction?.collaborators && transaction.collaborators.length > 0 ? (
                       <CollaboratorAvatarStack 
                         collaborators={transaction.collaborators}
-                        onManage={() => setIsAssignModalOpen(true)}
+                        onManage={() => setIsManageModalOpen(true)}
+                        onAssign={() => setIsAssignModalOpen(true)}
                       />
                     ) : (
                       <span className="text-[13px] font-bold text-slate-300 italic tracking-tight">Not assigned</span>
@@ -153,11 +202,14 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
             </div>
 
             {/* Collaborator Column - Clean Grid View */}
-            <div className="space-y-3 min-w-[180px]">
-              <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">Collaborators</span>
+            <div className="space-y-3 min-w-[200px]">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest leading-none">Collaborators</span>
+              </div>
               <CollaboratorAvatarStack 
                 collaborators={transaction.collaborators}
-                onManage={() => setIsAssignModalOpen(true)}
+                onManage={() => setIsManageModalOpen(true)}
+                onAssign={() => setIsAssignModalOpen(true)}
               />
             </div>
 
@@ -336,6 +388,55 @@ export function TransactionDetailPage({ transaction, onBack, onUpdateTransaction
         defaultType="transaction"
         defaultTransactionId={transaction.id}
         context="transaction-detail"
+      />
+
+      <ManageCollaboratorsModal
+        open={isManageModalOpen}
+        onOpenChange={setIsManageModalOpen}
+        contextType="transaction"
+        client={{ id: transaction.id, name: transaction.address }}
+        assignedCollabs={GLOBAL_COLLABORATOR_POOL.filter(c =>
+          transaction.collaborators.some(ac => ac.name === c.name)
+        )}
+        assignments={localAssignments}
+        globalPool={GLOBAL_COLLABORATOR_POOL}
+        transactions={[transaction]}
+        onRemove={(id) => {
+          const collab = GLOBAL_COLLABORATOR_POOL.find(c => c.id === id);
+          if (collab) {
+            onUpdateTransaction({
+              ...transaction,
+              collaborators: transaction.collaborators.filter(c => c.name !== collab.name)
+            });
+          }
+        }}
+        onRemoveAll={() => {
+          onUpdateTransaction({ ...transaction, collaborators: [] });
+          setIsManageModalOpen(false);
+        }}
+        onUpdateAccess={handleUpdateAccess}
+        onAssign={(collabId, type, txnIds) => {
+          const collab = GLOBAL_COLLABORATOR_POOL.find(c => collabId === c.id);
+          if (collab) {
+            onUpdateTransaction({
+              ...transaction,
+              collaborators: [...transaction.collaborators, { id: collab.id, name: collab.name, role: collab.type.toUpperCase(), status: 'active' }]
+            });
+            
+            setLocalAssignments(prev => [
+              ...prev,
+              {
+                id: `a-${Date.now()}`,
+                clientId: '1',
+                collaboratorId: collabId,
+                transactionId: transaction.id,
+                assignmentType: type,
+                assignedAt: new Date().toISOString()
+              }
+            ]);
+          }
+        }}
+        onOpenInvite={() => toast.info("Opening invite...")}
       />
     </div>
   )
